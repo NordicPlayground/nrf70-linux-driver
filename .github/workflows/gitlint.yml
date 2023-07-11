@@ -1,0 +1,28 @@
+name: gitlint
+on:
+    push:
+      branches: [ "main" ]
+    pull_request:
+      branches: [ "main" ]
+jobs:
+    gitlint:
+      name: git lint
+      runs-on: ubuntu-latest
+      steps:
+        - name: 'Calculate PR commits + 1'
+          run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> $GITHUB_ENV
+        - uses: actions/checkout@v3
+          with:
+            ref: ${{ github.event.pull_request.head.sha }}
+            fetch-depth: ${{ env.PR_FETCH_DEPTH }}
+        - name: Info
+          run: |
+            echo "Repository: $GITHUB_REPOSITORY"
+            echo "Workspace: $GITHUB_WORKSPACE"
+            pwd
+            ls -la `pwd`
+            git log --oneline --graph
+        - name: Install and run gitlint
+          run: |
+            pip install gitlint
+            gitlint --commits ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}
