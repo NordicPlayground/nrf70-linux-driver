@@ -1,0 +1,14 @@
+# Copyright (c) 2021 Nordic Semiconductor ASA
+# SPDX-License-Identifier: Apache-2.0
+
+manifest:
+  remotes:
+    - name: ncs
+      url-base: https://github.com/nrfconnect
+
+  projects:
+    # TODO: Once west supports sparse checkout, we should use it here.
+    - name: nrf
+      remote: ncs
+      repo-path: sdk-nrf
+      revision: main
