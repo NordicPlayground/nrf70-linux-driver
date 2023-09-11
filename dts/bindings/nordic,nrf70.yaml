@@ -1,0 +1,28 @@
+# Copyright (c) 2023 Nordic Semiconductor ASA
+# SPDX-License-Identifier: GPL-2.0
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/spi/nordic,nrf70.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Nordic nRF70 series Wi-Fi SoC common bindings
+
+maintainers:
+  - Ajay Parida <ajay.parida@nordicsemi.no>
+
+properties:
+  iovdd-ctrl-gpios:
+    type: phandle-array
+    required: true
+    description: |
+            GPIO of the SOC controlling IO VDD Control pin of the nRF70
+  bucken-gpios:
+    type: phandle-array
+    required: true
+    description: |
+            GPIO of the SOC controlling BUCK_EN pin of the nRF70
+  host-irq-gpios:
+    type: phandle-array
+    required: true
+    description: |
+            GPIO of the SOC controlling the HOST IRQ pin of the nRF70
