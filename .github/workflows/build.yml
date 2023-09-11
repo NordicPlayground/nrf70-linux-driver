@@ -28,6 +28,10 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-doc-pip
 
+      - name: Install dependencies
+        run: |
+          sudo apt install device-tree-compiler
+
       - name: Install python dependencies
         run: |
           pip3 install setuptools
