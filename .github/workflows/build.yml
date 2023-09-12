@@ -12,6 +12,51 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: make
-      run: make
+      - name: Update PATH for west
+        run: |
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: cache-pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-doc-pip
+
+      - name: Install python dependencies
+        run: |
+          pip3 install setuptools
+          pip3 install wheel
+          pip3 install python-magic lxml junitparser gitlint pylint pykwalify yamllint
+          pip3 install west
+
+      - name: west setup
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
+          git remote -v
+          west init -l . || true
+          west update 2>&1 1> west.update.log || west update 2>&1 1> west.update2.log
+
+      - name: make
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          make 2>&1 1> make.log
+
+      - name: upload-results
+        uses: actions/upload-artifact@v3
+        continue-on-error: true
+        with:
+          name: build-results
+          path: |
+            make.log
+            west.update.log
+            west.update2.log
