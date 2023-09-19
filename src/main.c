@@ -333,7 +333,8 @@ struct wifi_nrf_ctx_lnx *wifi_nrf_fmac_dev_add_lnx(void)
 	unsigned char i = 0;
 
 	while ((!rpu_drv_priv.drv_init) && (i < 5)) {
-		pr_debug("%s: Driver not yet initialized, waiting %d\n", __func__, i);
+		pr_debug("%s: Driver not yet initialized, waiting %d\n",
+			 __func__, i);
 		i++;
 		msleep(10);
 	}

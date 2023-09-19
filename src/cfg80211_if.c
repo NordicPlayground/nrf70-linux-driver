@@ -2102,7 +2102,8 @@ int wifi_nrf_cfg80211_get_tx_power(struct wiphy *wiphy,
 
 	wifi_nrf_fmac_get_tx_power(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx);
 
-	pr_debug("%s: Waiting for response from RPU (Get TX power)\n", __func__);
+	pr_debug("%s: Waiting for response from RPU (Get TX power)\n",
+		 __func__);
 
 	while (!vif_ctx_lnx->event_tx_power && (count-- > 0))
 		msleep(100);
