@@ -9,7 +9,8 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-22.04
+    # Latest kernel versions won't work for nRF70 driver (this has 5.15)
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Update PATH for west
@@ -49,6 +50,7 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
+          sudo apt install linux-headers-$(uname -r)
           make 2>&1 1> make.log
 
       - name: upload-results
