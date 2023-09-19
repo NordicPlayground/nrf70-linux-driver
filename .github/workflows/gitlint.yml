@@ -7,7 +7,7 @@ on:
 jobs:
     gitlint:
       name: git lint
-      runs-on: ubuntu-latest
+      runs-on: ubuntu-22.04
       steps:
         - name: 'Calculate PR commits + 1'
           run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> $GITHUB_ENV
