@@ -57,6 +57,8 @@ jobs:
 
       - name: upload-results
         uses: actions/upload-artifact@v3
+        # Always collect artifacts, even if the build failed
+        if: always()
         continue-on-error: true
         with:
           name: build-results
