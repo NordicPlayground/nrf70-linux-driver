@@ -401,22 +401,18 @@ wifi_nrf_fmac_dev_init_lnx(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx)
 	struct nrf_wifi_umac_add_vif_info add_vif_info;
 #endif /* !CONFIG_NRF700X_RADIO_TEST */
 	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
-
 #if defined(CONFIG_BOARD_NRF7001)
 	enum op_band op_band = BAND_24G;
 #else /* CONFIG_BOARD_NRF7001 */
 	enum op_band op_band = BAND_ALL;
 #endif /* CONFIG_BOARD_NRF7001 */
-
 #ifdef CONFIG_NRF_WIFI_LOW_POWER
-	int sleep_type = -1;
 #ifndef CONFIG_NRF700X_RADIO_TEST
-	sleep_type = HW_SLEEP_ENABLE;
+	int sleep_type = HW_SLEEP_ENABLE;
 #else
-	sleep_type = SLEEP_DISABLE;
+	int sleep_type = SLEEP_DISABLE;
 #endif /* CONFIG_NRF700X_RADIO_TEST */
 #endif /* CONFIG_NRF_WIFI_LOW_POWER */
-
 	unsigned int fw_ver = 0;
 	struct nrf_wifi_tx_pwr_ctrl_params tx_pwr_ctrl_params;
 
