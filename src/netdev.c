@@ -72,6 +72,54 @@ static void nrf_cfg80211_queue_monitor_routine(struct work_struct *w)
 		schedule_work(&vif_ctx_lnx->ws_queue_monitor);
 	}
 }
+
+netdev_tx_t wifi_nrf_netdev_start_xmit(struct sk_buff *skb,
+				       struct net_device *netdev)
+{
+	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct wifi_nrf_fmac_dev_ctx *fmac_dev_ctx = NULL;
+	struct wifi_nrf_fmac_dev_ctx_def *def_dev_ctx = NULL;
+	struct rpu_host_stats *host_stats = NULL;
+	int status = -1;
+	int ret = NETDEV_TX_OK;
+
+	vif_ctx_lnx = netdev_priv(netdev);
+	rpu_ctx_lnx = vif_ctx_lnx->rpu_ctx;
+
+	fmac_dev_ctx = rpu_ctx_lnx->rpu_ctx;
+
+	def_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+	host_stats = &def_dev_ctx->host_stats;
+
+	if (skb->dev != netdev) {
+		pr_err("%s: wrong net dev\n", __func__);
+		goto out;
+	}
+
+	if ((vif_ctx_lnx->num_tx_pkt - host_stats->total_tx_pkts) >=
+	    CONFIG_NRF700X_MAX_TX_PENDING_QLEN) {
+		if (!netif_queue_stopped(netdev)) {
+			netif_stop_queue(netdev);
+		}
+		schedule_work(&vif_ctx_lnx->ws_queue_monitor);
+	}
+
+	status = wifi_nrf_utils_q_enqueue(fmac_dev_ctx->fpriv->opriv,
+					  vif_ctx_lnx->data_txq, skb);
+
+	if (status != WIFI_NRF_STATUS_SUCCESS) {
+		pr_err("%s: wifi_nrf_utils_q_enqueue failed\n", __func__);
+		ret = NETDEV_TX_BUSY;
+		return ret;
+	}
+
+	vif_ctx_lnx->num_tx_pkt++;
+	schedule_work(&vif_ctx_lnx->ws_data_tx);
+
+out:
+	return ret;
+}
 #endif
 
 int wifi_nrf_netdev_open(struct net_device *netdev)
@@ -149,53 +197,6 @@ out:
 	return status;
 }
 
-netdev_tx_t wifi_nrf_netdev_start_xmit(struct sk_buff *skb,
-				       struct net_device *netdev)
-{
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_dev_ctx *fmac_dev_ctx = NULL;
-	struct wifi_nrf_fmac_dev_ctx_def *def_dev_ctx = NULL;
-	struct rpu_host_stats *host_stats = NULL;
-	int status = -1;
-	int ret = NETDEV_TX_OK;
-
-	vif_ctx_lnx = netdev_priv(netdev);
-	rpu_ctx_lnx = vif_ctx_lnx->rpu_ctx;
-
-	fmac_dev_ctx = rpu_ctx_lnx->rpu_ctx;
-
-	def_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
-	host_stats = &def_dev_ctx->host_stats;
-
-	if (skb->dev != netdev) {
-		pr_err("%s: wrong net dev\n", __func__);
-		goto out;
-	}
-
-	if ((vif_ctx_lnx->num_tx_pkt - host_stats->total_tx_pkts) >=
-	    CONFIG_NRF700X_MAX_TX_PENDING_QLEN) {
-		if (!netif_queue_stopped(netdev)) {
-			netif_stop_queue(netdev);
-		}
-		schedule_work(&vif_ctx_lnx->ws_queue_monitor);
-	}
-
-	status = wifi_nrf_utils_q_enqueue(fmac_dev_ctx->fpriv->opriv,
-					  vif_ctx_lnx->data_txq, skb);
-
-	if (status != WIFI_NRF_STATUS_SUCCESS) {
-		pr_err("%s: wifi_nrf_utils_q_enqueue failed\n", __func__);
-		ret = NETDEV_TX_BUSY;
-		return ret;
-	}
-
-	vif_ctx_lnx->num_tx_pkt++;
-	schedule_work(&vif_ctx_lnx->ws_data_tx);
-
-out:
-	return ret;
-}
 
 void wifi_nrf_netdev_set_multicast_list(struct net_device *netdev)
 {
@@ -286,7 +287,9 @@ out:
 const struct net_device_ops wifi_nrf_netdev_ops = {
 	.ndo_open = wifi_nrf_netdev_open,
 	.ndo_stop = wifi_nrf_netdev_close,
+#ifdef CONFIG_NRF700X_DATA_TX
 	.ndo_start_xmit = wifi_nrf_netdev_start_xmit,
+#endif /* CONFIG_NRF700X_DATA_TX */
 };
 
 struct wifi_nrf_fmac_vif_ctx_lnx *

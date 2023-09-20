@@ -389,18 +389,22 @@ void wifi_nrf_fmac_dev_rem_lnx(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx)
 {
 	void *fmac_dev_ctx = rpu_ctx_lnx->rpu_ctx;
 	cfg80211_if_deinit(rpu_ctx_lnx->wiphy);
+#ifndef CONFIG_NRF700X_RADIO_TEST
 	wifi_nrf_fmac_dev_rem(fmac_dev_ctx);
+#else
+	wifi_nrf_fmac_dev_rem_rt(fmac_dev_ctx);
+#endif /* !CONFIG_NRF700X_RADIO_TEST */
 }
 
 enum wifi_nrf_status
 wifi_nrf_fmac_dev_init_lnx(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx)
 {
 	enum wifi_nrf_status status = WIFI_NRF_STATUS_FAIL;
-	unsigned char base_mac_addr[NRF_WIFI_ETH_ADDR_LEN];
 #ifndef CONFIG_NRF700X_RADIO_TEST
+	unsigned char base_mac_addr[NRF_WIFI_ETH_ADDR_LEN];
 	struct nrf_wifi_umac_add_vif_info add_vif_info;
-#endif /* !CONFIG_NRF700X_RADIO_TEST */
 	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+#endif /* !CONFIG_NRF700X_RADIO_TEST */
 #if defined(CONFIG_BOARD_NRF7001)
 	enum op_band op_band = BAND_24G;
 #else /* CONFIG_BOARD_NRF7001 */
@@ -514,23 +518,33 @@ wifi_nrf_fmac_dev_init_lnx(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx)
 	tx_pwr_ctrl_params.band_edge_5g_unii_4_hi =
 		CONFIG_NRF700X_BAND_UNII_4_UPPER_EDGE_BACKOFF;
 
+#ifndef CONFIG_NRF700X_RADIO_TEST
 	status = wifi_nrf_fmac_dev_init(rpu_ctx_lnx->rpu_ctx, NULL,
 #ifdef CONFIG_NRF_WIFI_LOW_POWER
 					sleep_type,
 #endif /* CONFIG_NRF_WIFI_LOW_POWER */
 					NRF_WIFI_DEF_PHY_CALIB, op_band,
 					&tx_pwr_ctrl_params);
-
+#else
+	status = wifi_nrf_fmac_dev_init_rt(rpu_ctx_lnx->rpu_ctx,
+#ifdef CONFIG_NRF_WIFI_LOW_POWER
+					   sleep_type,
+#endif /* CONFIG_NRF_WIFI_LOW_POWER */
+					   NRF_WIFI_DEF_PHY_CALIB, op_band,
+					   &tx_pwr_ctrl_params);
+#endif /* !CONFIG_NRF700X_RADIO_TEST */
 	if (status != WIFI_NRF_STATUS_SUCCESS) {
 		pr_err("%s: wifi_nrf_fmac_dev_init failed\n", __func__);
 		goto out;
 	}
+#ifndef CONFIG_NRF700X_RADIO_TEST
 	status = wifi_nrf_fmac_set_vif_macaddr(
 		rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx, base_mac_addr);
 	if (status != WIFI_NRF_STATUS_SUCCESS) {
 		pr_err("%s: MAC address change failed\n", __func__);
 		goto out;
 	}
+#endif /* !CONFIG_NRF700X_RADIO_TEST */
 out:
 #ifndef CONFIG_NRF700X_RADIO_TEST
 	if (status != WIFI_NRF_STATUS_SUCCESS) {
@@ -585,7 +599,11 @@ void wifi_nrf_fmac_dev_deinit_lnx(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx)
 	if_idx = vif_ctx_lnx->if_idx;
 #endif /* !CONFIG_NRF700X_RADIO_TEST */
 
+#ifndef CONFIG_NRF700X_RADIO_TEST
 	wifi_nrf_fmac_dev_deinit(rpu_ctx_lnx->rpu_ctx);
+#else
+	wifi_nrf_fmac_dev_deinit_rt(rpu_ctx_lnx->rpu_ctx);
+#endif /* !CONFIG_NRF700X_RADIO_TEST */
 
 	wifi_nrf_wlan_fmac_dbgfs_deinit(rpu_ctx_lnx);
 
@@ -896,12 +914,15 @@ int __init wifi_nrf_init_lnx(void)
 #endif
 #endif /* !CONFIG_NRF700X_RADIO_TEST */
 
+#ifndef CONFIG_NRF700X_RADIO_TEST
 	rpu_drv_priv.fmac_priv = wifi_nrf_fmac_init(
 #ifndef CONFIG_NRF700X_RADIO_TEST
 		&data_config, rx_buf_pools, &callbk_fns
 #endif /* !CONFIG_NRF700X_RADIO_TEST */
 	);
-
+#else
+	rpu_drv_priv.fmac_priv = wifi_nrf_fmac_init_rt();
+#endif /* !CONFIG_NRF700X_RADIO_TEST */
 	if (rpu_drv_priv.fmac_priv == NULL) {
 		pr_err("%s: wifi_nrf_fmac_init failed\n", __func__);
 		goto out;
@@ -919,8 +940,10 @@ out:
 void __exit wifi_nrf_deinit_lnx(void)
 {
 #ifndef CONFIG_NRF700X_RADIO_TEST
-#endif /* !CONFIG_NRF700X_RADIO_TEST */
 	wifi_nrf_fmac_deinit(rpu_drv_priv.fmac_priv);
+#else
+	wifi_nrf_fmac_deinit_rt(rpu_drv_priv.fmac_priv);
+#endif /* !CONFIG_NRF700X_RADIO_TEST */
 	wifi_nrf_dbgfs_deinit();
 }
 

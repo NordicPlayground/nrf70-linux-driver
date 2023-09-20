@@ -32,7 +32,11 @@ ccflags-y += -I$(ROOT_INC_DIR)/bus_if/bal/inc
 ccflags-y += -I$(ROOT_INC_DIR)/hw_if/hal/inc
 ccflags-y += -I$(ROOT_INC_DIR)/hw_if/hal/inc/fw
 ccflags-y += -I$(ROOT_INC_DIR)/fw_if/umac_if/inc
+ifeq ($(MODE), STA)
 ccflags-y += -I$(ROOT_INC_DIR)/fw_if/umac_if/inc/default
+else ifeq ($(MODE), RADIO-TEST)
+ccflags-y += -I$(ROOT_INC_DIR)/fw_if/umac_if/inc/radio_test
+endif
 ccflags-y += -I$(ROOT_INC_DIR)/fw_if/umac_if/inc/fw
 ccflags-y += -I$(ROOT_INC_DIR)/bus_if/bus/spi/inc
 
@@ -49,18 +53,22 @@ OBJS += $(OSAL_DIR)/hw_if/hal/src/hal_interrupt.o
 OBJS += $(OSAL_DIR)/hw_if/hal/src/pal.o
 OBJS += $(OSAL_DIR)/fw_if/umac_if/src/cmd.o
 OBJS += $(OSAL_DIR)/fw_if/umac_if/src/event.o
+ifeq ($(MODE), STA)
 OBJS += $(OSAL_DIR)/fw_if/umac_if/src/default/fmac_api.o
+else ifeq ($(MODE), RADIO-TEST)
+OBJS += $(OSAL_DIR)/fw_if/umac_if/src/radio_test/fmac_api.o
+endif
 OBJS += $(OSAL_DIR)/fw_if/umac_if/src/fmac_api_common.o
+
 OBJS += $(OSAL_DIR)/hw_if/hal/src/hal_fw_patch_loader.o
 OBJS += $(OSAL_DIR)/bus_if/bus/spi/src/spi.o
-
+OBJS += $(OSAL_DIR)/fw_if/umac_if/src/fmac_util.o
 
 ifneq ($(MODE), RADIO-TEST)
 OBJS += $(OSAL_DIR)/fw_if/umac_if/src/rx.o
 OBJS += $(OSAL_DIR)/fw_if/umac_if/src/tx.o
 OBJS += $(OSAL_DIR)/fw_if/umac_if/src/fmac_vif.o
 OBJS += $(OSAL_DIR)/fw_if/umac_if/src/fmac_peer.o
-OBJS += $(OSAL_DIR)/fw_if/umac_if/src/fmac_util.o
 endif
 ifeq ($(MODE), AP)
 OBJS += $(OSAL_DIR)/fw_if/umac_if/src/fmac_ap.o
@@ -82,7 +90,7 @@ OBJS += $(LINUX_SHIM_DIR)/src/spi/src/device.o
 OBJS += $(LINUX_SHIM_DIR)/src/spi/src/spi_if.o
 
 
-ccflags-y += -DCONFIG_NRF700X_DATA_TX \
+ccflags-y += \
 	     -DCONFIG_NRF700X_MAX_TX_TOKENS=12 \
          -DCONFIG_NRF700X_MAX_TX_AGGREGATION=1 \
 	     -DCONFIG_NRF700X_RX_MAX_DATA_SIZE=1600 \
@@ -106,11 +114,16 @@ ccflags-y += -DCONFIG_NRF700X_DATA_TX \
 	     -DCONFIG_NRF700X_BAND_UNII_3_UPPER_EDGE_BACKOFF=0 \
 	     -DCONFIG_NRF700X_BAND_UNII_4_LOWER_EDGE_BACKOFF=0 \
 	     -DCONFIG_NRF700X_BAND_UNII_4_UPPER_EDGE_BACKOFF=0 \
-	     -DCONFIG_NRF700X_STA_MODE \
 	     -DCONFIG_NRF700X_REG_DOMAIN=\"00\" \
 	     -DCONFIG_NRF700X_TX_MAX_DATA_SIZE=1600 \
 	     -DCONFIG_NRF700X_MAX_TX_PENDING_QLEN=18 \
 	     -DCONFIG_NRF700X_RPU_PS_IDLE_TIMEOUT_MS=10
+
+ifeq ($(MODE), STA)
+ccflags-y += \
+	     -DCONFIG_NRF700X_DATA_TX \
+	     -DCONFIG_NRF700X_STA_MODE
+endif
 
 OBJS += $(OSAL_DIR)/hw_if/hal/src/hpqm.o
 

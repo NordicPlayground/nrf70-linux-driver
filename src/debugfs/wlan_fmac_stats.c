@@ -475,10 +475,6 @@ static int wifi_nrf_wlan_fmac_dbgfs_stats_show(struct seq_file *m, void *v)
 
 	rpu_ctx_lnx = (struct wifi_nrf_ctx_lnx *)m->private;
 
-#ifdef CONFIG_NRF700X_RADIO_TEST
-	op_mode = rpu_ctx_lnx->conf_params.op_mode;
-#endif /* CONFIG_NRF700X_RADIO_TEST */
-
 	stats = kzalloc(sizeof(*stats), GFP_KERNEL);
 
 	status = wifi_nrf_fmac_stats_get(rpu_ctx_lnx->rpu_ctx,
