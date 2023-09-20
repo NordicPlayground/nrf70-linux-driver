@@ -49,7 +49,10 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: |
           sudo apt install linux-headers-$(uname -r)
-          make 2>&1 1> make.log
+          make clean all 2>&1 1> make.log
+          make clean all LOW_POWER=1 2>&1 1> make_lpm.log
+          make clean all MODE=RADIO-TEST 2>&1 1> make_rt.log
+          make clean all MODE=AP 2>&1 1> make_ap.log
 
       - name: upload-results
         uses: actions/upload-artifact@v3
@@ -60,5 +63,8 @@ jobs:
           name: build-results
           path: |
             make.log
+            make_lpm.log
+            make_rt.log
+            make_ap.log
             west.update.log
             west.update2.log
