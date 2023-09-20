@@ -197,7 +197,6 @@ out:
 	return status;
 }
 
-
 void wifi_nrf_netdev_set_multicast_list(struct net_device *netdev)
 {
 	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
