@@ -28,7 +28,7 @@ char *rf_params = NULL;
 module_param(rf_params, charp, 0000);
 MODULE_PARM_DESC(rf_params, "Configure the RF parameters");
 
-#ifdef CONFIG_WIFI_NRF_LOW_POWER
+#ifdef CONFIG_NRF_WIFI_LOW_POWER
 char *sleep_type = NULL;
 module_param(sleep_type, charp, 0000);
 MODULE_PARM_DESC(sleep_type, "Configure the sleep type parameter");
@@ -408,7 +408,7 @@ wifi_nrf_fmac_dev_init_lnx(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx)
 	enum op_band op_band = BAND_ALL;
 #endif /* CONFIG_BOARD_NRF7001 */
 
-#ifdef CONFIG_WIFI_NRF_LOW_POWER
+#ifdef CONFIG_NRF_WIFI_LOW_POWER
 	int sleep_type = -1;
 #ifndef CONFIG_NRF700X_RADIO_TEST
 	sleep_type = HW_SLEEP_ENABLE;
@@ -519,7 +519,7 @@ wifi_nrf_fmac_dev_init_lnx(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx)
 		CONFIG_NRF700X_BAND_UNII_4_UPPER_EDGE_BACKOFF;
 
 	status = wifi_nrf_fmac_dev_init(rpu_ctx_lnx->rpu_ctx, NULL,
-#ifdef CONFIG_WIFI_NRF_LOW_POWER
+#ifdef CONFIG_NRF_WIFI_LOW_POWER
 					sleep_type,
 #endif /* CONFIG_NRF_WIFI_LOW_POWER */
 					NRF_WIFI_DEF_PHY_CALIB, op_band,
@@ -785,7 +785,7 @@ void wifi_nrf_twt_teardown_callbk_fn(
 		twt_teardown_event->info.reason_code;
 }
 
-#ifdef CONFIG_WIFI_NRF_LOW_POWER
+#ifdef CONFIG_NRF_WIFI_LOW_POWER
 void wifi_nrf_twt_sleep_callbk_fn(
 	void *os_vif_ctx, struct nrf_wifi_umac_event_twt_sleep *twt_sleep_evnt,
 	unsigned int event_len)
@@ -895,7 +895,7 @@ int __init wifi_nrf_init_lnx(void)
 
 	callbk_fns.twt_config_callbk_fn = &wifi_nrf_twt_config_callbk_fn;
 	callbk_fns.twt_teardown_callbk_fn = &wifi_nrf_twt_teardown_callbk_fn;
-#ifdef CONFIG_WIFI_NRF_LOW_POWER
+#ifdef CONFIG_NRF_WIFI_LOW_POWER
 	callbk_fns.twt_sleep_callbk_fn = &wifi_nrf_twt_sleep_callbk_fn;
 #endif
 #endif /* !CONFIG_NRF700X_RADIO_TEST */

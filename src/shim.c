@@ -536,7 +536,7 @@ static unsigned int shim_time_elapsed_us(unsigned long start_time_us)
 	return (unsigned int)(ktime_get_real_ns() / 1000 - start_time_us);
 }
 
-#ifdef CONFIG_WIFI_NRF_LOW_POWER
+#ifdef CONFIG_NRF_WIFI_LOW_POWER
 static void *shim_timer_alloc(void)
 {
 	struct timer_list *timer = NULL;
@@ -1038,7 +1038,7 @@ const struct wifi_nrf_osal_ops wifi_nrf_os_ops = {
 	.bus_spi_dev_intr_unreg = shim_bus_spi_intr_unreg,
 	.bus_spi_dev_host_map_get = shim_bus_spi_dev_host_map_get,
 
-#ifdef CONFIG_WIFI_NRF_LOW_POWER
+#ifdef CONFIG_NRF_WIFI_LOW_POWER
 	.timer_alloc = shim_timer_alloc,
 	.timer_init = shim_timer_init,
 	.timer_free = shim_timer_free,
