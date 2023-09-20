@@ -12,6 +12,8 @@ DRV_MODE_NAME = _sta
 else ifeq ($(MODE), RADIO-TEST)
 ccflags-y += -DCONFIG_NRF700X_RADIO_TEST
 DRV_MODE_NAME = _radio_test
+else ifeq ($(MODE), AP)
+DRV_MODE_NAME = _ap
 endif
 
 ifeq ($(LOW_POWER), 1)
@@ -32,10 +34,10 @@ ccflags-y += -I$(ROOT_INC_DIR)/bus_if/bal/inc
 ccflags-y += -I$(ROOT_INC_DIR)/hw_if/hal/inc
 ccflags-y += -I$(ROOT_INC_DIR)/hw_if/hal/inc/fw
 ccflags-y += -I$(ROOT_INC_DIR)/fw_if/umac_if/inc
-ifeq ($(MODE), STA)
-ccflags-y += -I$(ROOT_INC_DIR)/fw_if/umac_if/inc/default
-else ifeq ($(MODE), RADIO-TEST)
+ifeq ($(MODE), RADIO-TEST)
 ccflags-y += -I$(ROOT_INC_DIR)/fw_if/umac_if/inc/radio_test
+else
+ccflags-y += -I$(ROOT_INC_DIR)/fw_if/umac_if/inc/default
 endif
 ccflags-y += -I$(ROOT_INC_DIR)/fw_if/umac_if/inc/fw
 ccflags-y += -I$(ROOT_INC_DIR)/bus_if/bus/spi/inc
@@ -53,10 +55,10 @@ OBJS += $(OSAL_DIR)/hw_if/hal/src/hal_interrupt.o
 OBJS += $(OSAL_DIR)/hw_if/hal/src/pal.o
 OBJS += $(OSAL_DIR)/fw_if/umac_if/src/cmd.o
 OBJS += $(OSAL_DIR)/fw_if/umac_if/src/event.o
-ifeq ($(MODE), STA)
-OBJS += $(OSAL_DIR)/fw_if/umac_if/src/default/fmac_api.o
-else ifeq ($(MODE), RADIO-TEST)
+ifeq ($(MODE), RADIO-TEST)
 OBJS += $(OSAL_DIR)/fw_if/umac_if/src/radio_test/fmac_api.o
+else
+OBJS += $(OSAL_DIR)/fw_if/umac_if/src/default/fmac_api.o
 endif
 OBJS += $(OSAL_DIR)/fw_if/umac_if/src/fmac_api_common.o
 
@@ -119,10 +121,9 @@ ccflags-y += \
 	     -DCONFIG_NRF700X_MAX_TX_PENDING_QLEN=18 \
 	     -DCONFIG_NRF700X_RPU_PS_IDLE_TIMEOUT_MS=10
 
-ifeq ($(MODE), STA)
-ccflags-y += \
-	     -DCONFIG_NRF700X_DATA_TX \
-	     -DCONFIG_NRF700X_STA_MODE
+ifneq ($(MODE), RADIO-TEST)
+ccflags-y += -DCONFIG_NRF700X_DATA_TX
+ccflags-y += -DCONFIG_NRF700X_STA_MODE
 endif
 
 OBJS += $(OSAL_DIR)/hw_if/hal/src/hpqm.o
