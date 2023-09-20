@@ -537,9 +537,23 @@ static unsigned int shim_time_elapsed_us(unsigned long start_time_us)
 }
 
 #ifdef CONFIG_NRF_WIFI_LOW_POWER
+
+struct shim_timer_data {
+	struct timer_list timer;
+	void (*callback)(unsigned long);
+	unsigned long data;
+};
+
+static void shim_timer_callback(struct timer_list *t)
+{
+	struct shim_timer_data *timer = from_timer(timer, t, timer);
+
+	timer->callback(timer->data);
+}
+
 static void *shim_timer_alloc(void)
 {
-	struct timer_list *timer = NULL;
+	struct shim_timer_data *timer = NULL;
 
 	timer = kmalloc(sizeof(*timer), GFP_ATOMIC);
 
@@ -552,10 +566,11 @@ static void *shim_timer_alloc(void)
 static void shim_timer_init(void *timer, void (*callback)(unsigned long),
 			    unsigned long data)
 {
-	init_timer(timer);
+	struct shim_timer_data *timer_data = timer;
 
-	((struct timer_list *)timer)->function = callback;
-	((struct timer_list *)timer)->data = data;
+	timer_data->callback = callback;
+	timer_data->data = data;
+	timer_setup(&timer_data->timer, shim_timer_callback, 0);
 }
 
 static void shim_timer_free(void *timer)
@@ -565,12 +580,16 @@ static void shim_timer_free(void *timer)
 
 static void shim_timer_schedule(void *timer, unsigned long duration)
 {
-	mod_timer(timer, jiffies + msecs_to_jiffies(duration));
+	struct shim_timer_data *timer_data = timer;
+
+	mod_timer(&timer_data->timer, jiffies + msecs_to_jiffies(duration));
 }
 
 static void shim_timer_kill(void *timer)
 {
-	del_timer_sync(timer);
+	struct shim_timer_data *timer_data = timer;
+
+	del_timer_sync(&timer_data->timer);
 }
 #endif
 
