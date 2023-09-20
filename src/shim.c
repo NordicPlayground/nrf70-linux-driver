@@ -591,6 +591,31 @@ static void shim_timer_kill(void *timer)
 
 	del_timer_sync(&timer_data->timer);
 }
+
+static int shim_bus_qspi_ps_sleep(void *os_qspi_priv)
+{
+	(void)os_qspi_priv;
+
+	rpu_sleep();
+
+	return 0;
+}
+
+static int shim_bus_qspi_ps_wake(void *os_qspi_priv)
+{
+	(void)os_qspi_priv;
+
+	rpu_wakeup();
+
+	return 0;
+}
+
+static int shim_bus_qspi_ps_status(void *os_qspi_priv)
+{
+	(void)os_qspi_priv;
+
+	return rpu_sleep_status();
+}
 #endif
 
 static void shim_assert(int test_val, int val, enum wifi_nrf_assert_op_type op,
@@ -1063,6 +1088,10 @@ const struct wifi_nrf_osal_ops wifi_nrf_os_ops = {
 	.timer_free = shim_timer_free,
 	.timer_schedule = shim_timer_schedule,
 	.timer_kill = shim_timer_kill,
+
+	.bus_qspi_ps_sleep = shim_bus_qspi_ps_sleep,
+	.bus_qspi_ps_wake = shim_bus_qspi_ps_wake,
+	.bus_qspi_ps_status = shim_bus_qspi_ps_status,
 #endif
 	.assert = shim_assert,
 	.strlen = shim_strlen,
