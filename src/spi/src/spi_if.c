@@ -227,6 +227,7 @@ int spdev_wait_while_rpu_wake_write(void)
 		ret = spdev_read_reg(0x2F, &val);
 
 		if (!ret && (val & RPU_WAKEUP_NOW)) {
+			set_spi_speed(SPI_SPEED_FROM_DTS);
 			break;
 		}
 
@@ -236,8 +237,12 @@ int spdev_wait_while_rpu_wake_write(void)
 	return ret;
 }
 
+#define RPU_SPI_WAKEUP_FREQ_MHZ 8 * 1000 * 1000
 int _spdev_cmd_wakeup_rpu(uint32_t data)
 {
+	/* Always use 8MHz to wake up RPU */
+	set_spi_speed(RPU_SPI_WAKEUP_FREQ_MHZ);
+
 	return spdev_write_reg(0x3F, data);
 }
 
