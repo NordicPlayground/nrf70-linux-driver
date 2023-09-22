@@ -7,6 +7,11 @@ DTS = dts/nrf70_rpi_interposer.dts
 # Private portion
 DRV_FUNC_NAME =  _wifi_fmac
 
+# If mode != STA throw error
+ifneq ($(MODE), STA)
+$(error Invalid MODE=$(MODE) specified. Valid values are STA)
+endif
+
 ifeq ($(MODE), STA)
 DRV_MODE_NAME = _sta
 else ifeq ($(MODE), RADIO-TEST)
