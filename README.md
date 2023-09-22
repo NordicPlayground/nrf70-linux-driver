@@ -63,17 +63,12 @@ nRF70 driver has feature flags to enable/disable certain features. These flags c
 
 | Flag | Description | Default |
 | --- | --- | --- |
-| `MODE` | Supported modes are `STA`, `AP`, `RADIO-TEST` | `STA` |
+| `MODE` | Supported modes are `STA` only | `STA` |
 | `LOW_POWER` | Enable low power mode | `0` |
 
 #### Examples
 
-1. Build the driver in AP mode
-    ```bash
-    make clean all MODE=AP
-    ```
-
-2. Build the driver in STA mode with low power enabled
+1. Build the driver in STA mode with low power enabled
     ```bash
     make clean all MODE=STA LOW_POWER=1
     ```
