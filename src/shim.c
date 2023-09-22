@@ -542,11 +542,20 @@ struct shim_timer_data {
 	struct timer_list timer;
 	void (*callback)(unsigned long);
 	unsigned long data;
+	struct work_struct work;
 };
 
 static void shim_timer_callback(struct timer_list *t)
 {
 	struct shim_timer_data *timer = from_timer(timer, t, timer);
+
+	schedule_work(&timer->work);
+}
+
+static void shim_timer_invoke_callback(struct work_struct *work)
+{
+	struct shim_timer_data *timer =
+		container_of(work, struct shim_timer_data, work);
 
 	timer->callback(timer->data);
 }
@@ -559,6 +568,8 @@ static void *shim_timer_alloc(void)
 
 	if (!timer)
 		pr_err("%s: Unable to allocate memory for tasklet\n", __func__);
+
+	INIT_WORK(&timer->work, shim_timer_invoke_callback);
 
 	return timer;
 }
