@@ -623,22 +623,22 @@ static void shim_assert(int test_val, int val, enum wifi_nrf_assert_op_type op,
 {
 	switch (op) {
 	case WIFI_NRF_ASSERT_EQUAL_TO:
-		WARN(test_val == val, "%s", msg);
-		break;
-	case WIFI_NRF_ASSERT_NOT_EQUAL_TO:
 		WARN(test_val != val, "%s", msg);
 		break;
+	case WIFI_NRF_ASSERT_NOT_EQUAL_TO:
+		WARN(test_val == val, "%s", msg);
+		break;
 	case WIFI_NRF_ASSERT_LESS_THAN:
-		WARN(test_val < val, "%s", msg);
+		WARN(test_val >= val, "%s", msg);
 		break;
 	case WIFI_NRF_ASSERT_LESS_THAN_EQUAL_TO:
-		WARN(test_val <= val, "%s", msg);
-		break;
-	case WIFI_NRF_ASSERT_GREATER_THAN:
 		WARN(test_val > val, "%s", msg);
 		break;
+	case WIFI_NRF_ASSERT_GREATER_THAN:
+		WARN(test_val <= val, "%s", msg);
+		break;
 	case WIFI_NRF_ASSERT_GREATER_THAN_EQUAL_TO:
-		WARN(test_val >= val, "%s", msg);
+		WARN(test_val < val, "%s", msg);
 		break;
 	default:
 		pr_err("%s: Invalid assertion operation\n", __func__);
