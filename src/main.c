@@ -42,6 +42,10 @@ module_param(phy_calib, uint, 0000);
 MODULE_PARM_DESC(phy_calib,
 		 "Configure the bitmap of the PHY calibrations required");
 
+/* 3 bytes for addreess, 3 bytes for length */
+#define MAX_PKT_RAM_TX_ALIGN_OVERHEAD 6
+#define MAX_RX_QUEUES 3
+
 unsigned char aggregation = 1;
 unsigned char wmm = 1;
 unsigned char max_num_tx_agg_sessions = 4;
@@ -49,15 +53,15 @@ unsigned char max_num_rx_agg_sessions = 8;
 unsigned char reorder_buf_size = 64;
 unsigned char max_rxampdu_size = MAX_RX_AMPDU_SIZE_64KB;
 
-unsigned char max_tx_aggregation = 4;
+unsigned char max_tx_aggregation = CONFIG_NRF700X_MAX_TX_AGGREGATION;
 
-unsigned int rx1_num_bufs = 21;
-unsigned int rx2_num_bufs = 21;
-unsigned int rx3_num_bufs = 21;
+static unsigned int rx1_num_bufs = CONFIG_NRF700X_RX_NUM_BUFS / MAX_RX_QUEUES;
+static unsigned int rx2_num_bufs = CONFIG_NRF700X_RX_NUM_BUFS / MAX_RX_QUEUES;
+static unsigned int rx3_num_bufs = CONFIG_NRF700X_RX_NUM_BUFS / MAX_RX_QUEUES;
 
-unsigned int rx1_buf_sz = 1600;
-unsigned int rx2_buf_sz = 1600;
-unsigned int rx3_buf_sz = 1600;
+static unsigned int rx1_buf_sz = CONFIG_NRF700X_RX_MAX_DATA_SIZE;
+static unsigned int rx2_buf_sz = CONFIG_NRF700X_RX_MAX_DATA_SIZE;
+static unsigned int rx3_buf_sz = CONFIG_NRF700X_RX_MAX_DATA_SIZE;
 
 unsigned char rate_protection_type = 0;
 
@@ -931,6 +935,25 @@ int __init wifi_nrf_init_lnx(void)
 	rpu_drv_priv.drv_init = true;
 #ifndef CONFIG_NRF700X_RADIO_TEST
 #endif /* !CONFIG_NRF700X_RADIO_TEST */
+
+#ifdef CONFIG_NRF700X_DATA_TX
+	{
+		struct wifi_nrf_fmac_priv_def *def_priv = NULL;
+
+		def_priv = wifi_fmac_priv(rpu_drv_priv.fmac_priv);
+		def_priv->max_ampdu_len_per_token =
+			(RPU_PKTRAM_SIZE - (CONFIG_NRF700X_RX_NUM_BUFS *
+					    CONFIG_NRF700X_RX_MAX_DATA_SIZE)) /
+			CONFIG_NRF700X_MAX_TX_TOKENS;
+		/* Align to 4-byte */
+		def_priv->max_ampdu_len_per_token &= ~0x3;
+
+		/* Alignment overhead for size based coalesce */
+		def_priv->avail_ampdu_len_per_token =
+			def_priv->max_ampdu_len_per_token -
+			(MAX_PKT_RAM_TX_ALIGN_OVERHEAD * max_tx_aggregation);
+	}
+#endif /* CONFIG_NRF700X_DATA_TX */
 
 	ret = 0;
 out:
