@@ -864,7 +864,7 @@ shim_bus_spi_intr_reg(void *os_spi_dev_ctx, void *callbk_data,
 
 	lnx_spi_dev_ctx = os_spi_dev_ctx;
 
-	lnx_spi_priv->wq = alloc_workqueue("nRF7002 WQ", 0, 1);
+	lnx_spi_priv->wq = alloc_workqueue("nRF7002 WQ", WQ_HIGHPRI, 0);
 
 	if (lnx_spi_priv->wq == NULL) {
 		pr_err("Cannot allocate nRF7002 WQ\n");
