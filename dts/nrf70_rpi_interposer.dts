@@ -27,7 +27,7 @@
 			nrf7002_ek: nrf7002@0 {
 				compatible = "nordic,nrf70-spi";
 				reg = <0x0>;
-				spi-max-frequency = <8000000>;
+				spi-max-frequency = <24000000>;
 				spi-bits-per-word = <8>;
 				status = "okay";
 				bucken-gpio = <&gpio 18 0>;
