@@ -17,6 +17,30 @@
 
 static struct spdev_config *config;
 
+#define SPI_SPEED_FROM_DTS 0
+
+static void set_spi_speed(unsigned int speed)
+{
+	struct spi_device *spi_dev = config->dev;
+	struct device_node *np = spi_dev->dev.of_node;
+
+	if (speed == SPI_SPEED_FROM_DTS) {
+		const unsigned int *max_speed_hz;
+
+		max_speed_hz = of_get_property(np, "spi-max-frequency", NULL);
+		if (!max_speed_hz) {
+			pr_err("%s: spi-max-frequency property not found\n",
+			       __func__);
+			return;
+		}
+
+		spi_dev->max_speed_hz = *max_speed_hz;
+	} else {
+		spi_dev->max_speed_hz = speed;
+	}
+	spi_setup(spi_dev);
+}
+
 static int spdev_read_reg32_hl(unsigned int addr, void *data, unsigned int len,
 			       unsigned int discard_bytes)
 {
@@ -245,6 +269,7 @@ int spdev_init(struct spdev_config *dev_config)
 	config->spi_slave_latency = 3;
 	mutex_init(&config->lock);
 
+	set_spi_speed(SPI_SPEED_FROM_DTS);
 	return 0;
 }
 
