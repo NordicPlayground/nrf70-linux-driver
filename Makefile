@@ -137,6 +137,8 @@ OBJS += $(OSAL_DIR)/hw_if/hal/src/hpqm.o
 # Use one of DBG/INF/ERR
 # ccflags-y += -DCONFIG_WIFI_NRF700X_LOG_LEVEL_DBG
 
+ccflags-y += -Werror
+
 NAME = nrf$(DRV_FUNC_NAME)$(DRV_MODE_NAME)
 
 obj-m += $(NAME).o
