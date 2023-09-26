@@ -358,7 +358,15 @@ out:
 void wifi_nrf_netdev_del_vif(struct net_device *netdev)
 {
 	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct wifi_nrf_fmac_dev_ctx *fmac_dev_ctx = NULL;
+
 	vif_ctx_lnx = netdev_priv(netdev);
+	rpu_ctx_lnx = vif_ctx_lnx->rpu_ctx;
+	fmac_dev_ctx = rpu_ctx_lnx->rpu_ctx;
+
+	wifi_nrf_utils_q_free(fmac_dev_ctx->fpriv->opriv,
+			      vif_ctx_lnx->data_txq);
 
 	unregister_netdevice(netdev);
 	netdev->ieee80211_ptr = NULL;
