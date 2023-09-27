@@ -350,6 +350,43 @@ wifi_nrf_wlan_fmac_dbgfs_stats_show_umac(struct seq_file *m,
 
 	seq_printf(m, "CURR_STATE = %d\n",
 		   stats->cmd_evnt_dbg_params.CURR_STATE);
+
+	seq_printf(m, "tx_unicast_pkt_count = %d\n",
+		   stats->interface_data_stats.tx_unicast_pkt_count);
+
+	seq_printf(m, "tx_multicast_pkt_count = %d\n",
+		   stats->interface_data_stats.tx_multicast_pkt_count);
+
+	seq_printf(m, "tx_broadcast_pkt_count = %d\n",
+		   stats->interface_data_stats.tx_broadcast_pkt_count);
+
+	seq_printf(m, "tx_bytes = %d\n", stats->interface_data_stats.tx_bytes);
+
+	seq_printf(m, "rx_unicast_pkt_count = %d\n",
+		   stats->interface_data_stats.rx_unicast_pkt_count);
+
+	seq_printf(m, "rx_multicast_pkt_count = %d\n",
+		   stats->interface_data_stats.rx_multicast_pkt_count);
+
+	seq_printf(m, "tx_multicast_pkt_count = %d\n",
+		   stats->interface_data_stats.tx_multicast_pkt_count);
+
+	seq_printf(m, "rx_broadcast_pkt_count = %d\n",
+		   stats->interface_data_stats.rx_broadcast_pkt_count);
+
+	seq_printf(m, "rx_beacon_success_count = %d\n",
+		   stats->interface_data_stats.rx_beacon_success_count);
+
+	seq_printf(m, "rx_beacon_miss_count = %d\n",
+		   stats->interface_data_stats.rx_beacon_miss_count);
+
+	seq_printf(m, "rx_bytes = %d\n", stats->interface_data_stats.rx_bytes);
+
+	seq_printf(m, "rx_checksum_error_count = %d\n",
+		   stats->interface_data_stats.rx_checksum_error_count);
+
+	seq_printf(m, "replay_attack_drop_cnt = %d\n",
+		   stats->interface_data_stats.replay_attack_drop_cnt);
 }
 
 static void
