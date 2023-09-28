@@ -32,10 +32,10 @@ param_get_val(unsigned char *buf, unsigned char *str, unsigned long *val)
 	}
 }
 
-static int wifi_nrf_wlan_fmac_conf_disp(struct seq_file *m, void *v)
+static int nrf_wifi_wlan_fmac_conf_disp(struct seq_file *m, void *v)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx =
-		(struct wifi_nrf_ctx_lnx *)m->private;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx =
+		(struct nrf_wifi_ctx_lnx *)m->private;
 	struct rpu_conf_params *conf_params = NULL;
 
 	conf_params = &rpu_ctx_lnx->conf_params;
@@ -51,7 +51,7 @@ static int wifi_nrf_wlan_fmac_conf_disp(struct seq_file *m, void *v)
 	return 0;
 }
 
-void wifi_nrf_lnx_wlan_fmac_conf_init(struct rpu_conf_params *conf_params)
+void nrf_wifi_lnx_wlan_fmac_conf_init(struct rpu_conf_params *conf_params)
 {
 	memset(conf_params, 0, sizeof(*conf_params));
 
@@ -59,7 +59,7 @@ void wifi_nrf_lnx_wlan_fmac_conf_init(struct rpu_conf_params *conf_params)
 	conf_params->power_save = 0;
 }
 
-static ssize_t wifi_nrf_wlan_fmac_conf_write(struct file *file,
+static ssize_t nrf_wifi_wlan_fmac_conf_write(struct file *file,
 					     const char __user *in_buf,
 					     size_t count, loff_t *ppos)
 {
@@ -67,10 +67,10 @@ static ssize_t wifi_nrf_wlan_fmac_conf_write(struct file *file,
 	unsigned long val = 0;
 	char err_str[MAX_ERR_STR_SIZE];
 	ssize_t ret_val = count;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	enum wifi_nrf_status status = WIFI_NRF_STATUS_FAIL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 
-	rpu_ctx_lnx = (struct wifi_nrf_ctx_lnx *)file->f_inode->i_private;
+	rpu_ctx_lnx = (struct nrf_wifi_ctx_lnx *)file->f_inode->i_private;
 
 	if (count >= MAX_CONF_BUF_SIZE) {
 		snprintf(err_str, MAX_ERR_STR_SIZE,
@@ -112,10 +112,10 @@ static ssize_t wifi_nrf_wlan_fmac_conf_write(struct file *file,
 		if (rpu_ctx_lnx->conf_params.uapsd_queue == val)
 			goto out;
 
-		status = wifi_nrf_fmac_set_uapsd_queue(rpu_ctx_lnx->rpu_ctx, 0,
+		status = nrf_wifi_fmac_set_uapsd_queue(rpu_ctx_lnx->rpu_ctx, 0,
 						       val);
 
-		if (status != WIFI_NRF_STATUS_SUCCESS) {
+		if (status != NRF_WIFI_STATUS_SUCCESS) {
 			snprintf(err_str, MAX_ERR_STR_SIZE,
 				 "Programming uapsd queue failed\n");
 			goto error;
@@ -133,10 +133,10 @@ static ssize_t wifi_nrf_wlan_fmac_conf_write(struct file *file,
 		if (rpu_ctx_lnx->conf_params.power_save == val)
 			goto out;
 
-		status = wifi_nrf_fmac_set_power_save(rpu_ctx_lnx->rpu_ctx, 0,
+		status = nrf_wifi_fmac_set_power_save(rpu_ctx_lnx->rpu_ctx, 0,
 						      val);
 
-		if (status != WIFI_NRF_STATUS_SUCCESS) {
+		if (status != NRF_WIFI_STATUS_SUCCESS) {
 			snprintf(err_str, MAX_ERR_STR_SIZE,
 				 "Programming power save failed\n");
 			goto error;
@@ -175,10 +175,10 @@ static ssize_t wifi_nrf_wlan_fmac_conf_write(struct file *file,
 		}
 		wiphy_info->rts_threshold = val;
 
-		status = wifi_nrf_fmac_set_wiphy_params(rpu_ctx_lnx->rpu_ctx, 0,
+		status = nrf_wifi_fmac_set_wiphy_params(rpu_ctx_lnx->rpu_ctx, 0,
 							wiphy_info);
 
-		if (status != WIFI_NRF_STATUS_SUCCESS) {
+		if (status != NRF_WIFI_STATUS_SUCCESS) {
 			snprintf(err_str, MAX_ERR_STR_SIZE,
 				 "Programming rts_threshold failed\n");
 			goto error;
@@ -204,24 +204,24 @@ out:
 	return ret_val;
 }
 
-static int wifi_nrf_wlan_fmac_conf_open(struct inode *inode, struct file *file)
+static int nrf_wifi_wlan_fmac_conf_open(struct inode *inode, struct file *file)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx =
-		(struct wifi_nrf_ctx_lnx *)inode->i_private;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx =
+		(struct nrf_wifi_ctx_lnx *)inode->i_private;
 
-	return single_open(file, wifi_nrf_wlan_fmac_conf_disp, rpu_ctx_lnx);
+	return single_open(file, nrf_wifi_wlan_fmac_conf_disp, rpu_ctx_lnx);
 }
 
 static const struct file_operations fops_wlan_conf = {
-	.open = wifi_nrf_wlan_fmac_conf_open,
+	.open = nrf_wifi_wlan_fmac_conf_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
-	.write = wifi_nrf_wlan_fmac_conf_write,
+	.write = nrf_wifi_wlan_fmac_conf_write,
 	.release = single_release
 };
 
-int wifi_nrf_wlan_fmac_dbgfs_conf_init(struct dentry *root,
-				       struct wifi_nrf_ctx_lnx *rpu_ctx_lnx)
+int nrf_wifi_wlan_fmac_dbgfs_conf_init(struct dentry *root,
+				       struct nrf_wifi_ctx_lnx *rpu_ctx_lnx)
 {
 	int ret = 0;
 
@@ -243,12 +243,12 @@ int wifi_nrf_wlan_fmac_dbgfs_conf_init(struct dentry *root,
 	goto out;
 
 fail:
-	wifi_nrf_wlan_fmac_dbgfs_conf_deinit(rpu_ctx_lnx);
+	nrf_wifi_wlan_fmac_dbgfs_conf_deinit(rpu_ctx_lnx);
 out:
 	return ret;
 }
 
-void wifi_nrf_wlan_fmac_dbgfs_conf_deinit(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx)
+void nrf_wifi_wlan_fmac_dbgfs_conf_deinit(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx)
 {
 	if (rpu_ctx_lnx->dbgfs_wlan_conf_root)
 		debugfs_remove(rpu_ctx_lnx->dbgfs_wlan_conf_root);

@@ -17,21 +17,21 @@ struct p2p_info {
 	u64 remain_on_channel_cookie;
 };
 
-int wifi_nrf_cfg80211_start_p2p_dev(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_start_p2p_dev(struct wiphy *wiphy,
 				    struct wireless_dev *wdev);
 
-void wifi_nrf_cfg80211_stop_p2p_dev(struct wiphy *wiphy,
+void nrf_wifi_cfg80211_stop_p2p_dev(struct wiphy *wiphy,
 				    struct wireless_dev *wdev);
 
-int wifi_nrf_cfg80211_remain_on_channel(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_remain_on_channel(struct wiphy *wiphy,
 					struct wireless_dev *wdev,
 					struct ieee80211_channel *chan,
 					unsigned int duration,
 					unsigned long long *cookie);
 
-int wifi_nrf_cfg80211_cancel_remain_on_channel(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_cancel_remain_on_channel(struct wiphy *wiphy,
 					       struct wireless_dev *wdev,
 					       unsigned long long cookie);
 
-int p2p_event(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx, void *network_dev,
+int p2p_event(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx, void *network_dev,
 	      void *params);

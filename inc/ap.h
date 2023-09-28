@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: GPL-2.0
  */
 
-struct wifi_nrf_cfg80211_mgmt_registration {
+struct nrf_wifi_cfg80211_mgmt_registration {
 	struct list_head list;
 	struct wireless_dev *wdev;
 	u32 nlportid;
@@ -20,60 +20,60 @@ struct cookie_info {
 	unsigned long long rpu_cookie;
 };
 
-int ap_event_cookie(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx, int event_num,
+int ap_event_cookie(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx, int event_num,
 		    void *event_info);
 
 int ap_event_rx_mgmt(void *dev, int event_num, void *event_info);
 
-int ap_event_tx_status(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx, void *dev,
+int ap_event_tx_status(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx, void *dev,
 		       int event_num, void *event_info);
 
 int ap_event_set_interface(void *dev, int event_num, void *event_info);
 
-int wifi_nrf_cfg80211_chg_bcn(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_chg_bcn(struct wiphy *wiphy, struct net_device *netdev,
 			      struct cfg80211_beacon_data *params);
 
-int wifi_nrf_cfg80211_chg_bss(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_chg_bss(struct wiphy *wiphy, struct net_device *netdev,
 			      struct bss_parameters *params);
 
-int wifi_nrf_cfg80211_start_ap(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_start_ap(struct wiphy *wiphy, struct net_device *netdev,
 			       struct cfg80211_ap_settings *params);
 
-int wifi_nrf_cfg80211_stop_ap(struct wiphy *wiphy, struct net_device *netdev);
+int nrf_wifi_cfg80211_stop_ap(struct wiphy *wiphy, struct net_device *netdev);
 
-int wifi_nrf_cfg80211_chg_vif(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_chg_vif(struct wiphy *wiphy, struct net_device *netdev,
 			      enum nl80211_iftype type,
 			      struct vif_params *params);
 
-int wifi_nrf_cfg80211_mgmt_tx(struct wiphy *wiphy, struct wireless_dev *wdev,
+int nrf_wifi_cfg80211_mgmt_tx(struct wiphy *wiphy, struct wireless_dev *wdev,
 			      struct cfg80211_mgmt_tx_params *params,
 			      u64 *cookie);
 
-int wifi_nrf_cfg80211_del_sta(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_del_sta(struct wiphy *wiphy, struct net_device *netdev,
 			      struct station_del_parameters *params);
 
-int wifi_nrf_cfg80211_add_sta(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_add_sta(struct wiphy *wiphy, struct net_device *netdev,
 			      const u8 *mac, struct station_parameters *params);
 
-int wifi_nrf_cfg80211_chg_sta(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_chg_sta(struct wiphy *wiphy, struct net_device *netdev,
 			      const u8 *mac, struct station_parameters *params);
 
-int wifi_nrf_cfg80211_set_txq_params(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_set_txq_params(struct wiphy *wiphy,
 				     struct net_device *netdev,
 				     struct ieee80211_txq_params *params);
 
-void wifi_nrf_cfg80211_mgmt_frame_reg(struct wiphy *wiphy,
+void nrf_wifi_cfg80211_mgmt_frame_reg(struct wiphy *wiphy,
 				      struct wireless_dev *wdev,
 				      struct mgmt_frame_regs *upd);
 
-int wifi_nrf_cfg80211_probe_client(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_probe_client(struct wiphy *wiphy,
 				   struct net_device *netdev, const u8 *peer,
 				   u64 *cookie);
-struct wireless_dev *wifi_nrf_cfg80211_add_vif(struct wiphy *wiphy,
+struct wireless_dev *nrf_wifi_cfg80211_add_vif(struct wiphy *wiphy,
 					       const char *name,
 					       unsigned char name_assign_type,
 					       enum nl80211_iftype type,
 					       struct vif_params *params);
 
-int wifi_nrf_cfg80211_del_vif(struct wiphy *wiphy, struct wireless_dev *wdev);
+int nrf_wifi_cfg80211_del_vif(struct wiphy *wiphy, struct wireless_dev *wdev);
 #endif /* !CONFIG_NRF700X_RADIO_TEST */

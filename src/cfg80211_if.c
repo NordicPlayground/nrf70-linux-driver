@@ -17,27 +17,27 @@ int get_scan_results;
 unsigned long long cmd_frame_cookie_g;
 
 #ifndef CONFIG_NRF700X_RADIO_TEST
-struct wireless_dev *wifi_nrf_cfg80211_add_vif(struct wiphy *wiphy,
+struct wireless_dev *nrf_wifi_cfg80211_add_vif(struct wiphy *wiphy,
 					       const char *name,
 					       unsigned char name_assign_type,
 					       enum nl80211_iftype type,
 					       struct vif_params *params)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_add_vif_info *add_vif_info = NULL;
 	unsigned char mac_addr[ETH_ALEN];
 
 	rpu_ctx_lnx = wiphy_priv(wiphy);
 
-	if (wifi_nrf_fmac_mac_addr(rpu_ctx_lnx->rpu_ctx, mac_addr) !=
-	    WIFI_NRF_STATUS_SUCCESS) {
+	if (nrf_wifi_fmac_mac_addr(rpu_ctx_lnx->rpu_ctx, mac_addr) !=
+	    NRF_WIFI_STATUS_SUCCESS) {
 		pr_err("%s: Unable to get mac address for VIF\n", __func__);
 		goto err;
 	}
 
 	vif_ctx_lnx =
-		wifi_nrf_wlan_fmac_add_vif(rpu_ctx_lnx, name, mac_addr, type);
+		nrf_wifi_wlan_fmac_add_vif(rpu_ctx_lnx, name, mac_addr, type);
 
 	if (!vif_ctx_lnx) {
 		pr_err("%s: Unable to add interface to the stack\n", __func__);
@@ -57,11 +57,11 @@ struct wireless_dev *wifi_nrf_cfg80211_add_vif(struct wiphy *wiphy,
 
 	ether_addr_copy(add_vif_info->mac_addr, mac_addr);
 
-	vif_ctx_lnx->if_idx = wifi_nrf_fmac_add_vif(rpu_ctx_lnx->rpu_ctx,
+	vif_ctx_lnx->if_idx = nrf_wifi_fmac_add_vif(rpu_ctx_lnx->rpu_ctx,
 						    vif_ctx_lnx, add_vif_info);
 
 	if (vif_ctx_lnx->if_idx >= MAX_NUM_VIFS) {
-		pr_err("%s: wifi_nrf_fmac_add_vif failed\n", __func__);
+		pr_err("%s: nrf_wifi_fmac_add_vif failed\n", __func__);
 		goto err;
 	}
 
@@ -69,7 +69,7 @@ struct wireless_dev *wifi_nrf_cfg80211_add_vif(struct wiphy *wiphy,
 
 err:
 	if (vif_ctx_lnx) {
-		wifi_nrf_wlan_fmac_del_vif(vif_ctx_lnx);
+		nrf_wifi_wlan_fmac_del_vif(vif_ctx_lnx);
 		vif_ctx_lnx = NULL;
 	}
 out:
@@ -82,10 +82,10 @@ out:
 		return ERR_PTR(-EOPNOTSUPP);
 }
 
-int wifi_nrf_cfg80211_del_vif(struct wiphy *wiphy, struct wireless_dev *wdev)
+int nrf_wifi_cfg80211_del_vif(struct wiphy *wiphy, struct wireless_dev *wdev)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct net_device *netdev = NULL;
 	int status = -1;
 
@@ -100,17 +100,17 @@ int wifi_nrf_cfg80211_del_vif(struct wiphy *wiphy, struct wireless_dev *wdev)
 		goto out;
 	}
 
-	status = wifi_nrf_fmac_del_vif(rpu_ctx_lnx->rpu_ctx,
+	status = nrf_wifi_fmac_del_vif(rpu_ctx_lnx->rpu_ctx,
 				       vif_ctx_lnx->if_idx);
 
-	if (status != WIFI_NRF_STATUS_SUCCESS) {
-		pr_err("%s: wifi_nrf_fmac_del_vif failed\n", __func__);
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		pr_err("%s: nrf_wifi_fmac_del_vif failed\n", __func__);
 		goto out;
 	}
 
-	wifi_nrf_netdev_del_vif(netdev);
+	nrf_wifi_netdev_del_vif(netdev);
 
-	wifi_nrf_fmac_vif_clear_ctx(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx);
+	nrf_wifi_fmac_vif_clear_ctx(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx);
 	netdev = NULL;
 
 	kfree(wdev);
@@ -120,13 +120,13 @@ out:
 	return status;
 }
 
-int wifi_nrf_cfg80211_chg_vif(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_chg_vif(struct wiphy *wiphy, struct net_device *netdev,
 			      enum nl80211_iftype iftype,
 			      struct vif_params *params)
 {
 	struct wireless_dev *wdev = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_chg_vif_attr_info *vif_info = NULL;
 	int status = -1;
 	unsigned int count = 50;
@@ -146,11 +146,11 @@ int wifi_nrf_cfg80211_chg_vif(struct wiphy *wiphy, struct net_device *netdev,
 	vif_info->iftype = iftype;
 	vif_info->nrf_wifi_use_4addr = params->use_4addr;
 
-	status = wifi_nrf_fmac_chg_vif(rpu_ctx_lnx->rpu_ctx,
+	status = nrf_wifi_fmac_chg_vif(rpu_ctx_lnx->rpu_ctx,
 				       vif_ctx_lnx->if_idx, vif_info);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_set_vif failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_set_vif failed\n", __func__);
 		goto out;
 	}
 
@@ -171,7 +171,7 @@ int wifi_nrf_cfg80211_chg_vif(struct wiphy *wiphy, struct net_device *netdev,
 		goto out;
 	}
 
-	wifi_nrf_fmac_vif_update_if_type(rpu_ctx_lnx->rpu_ctx,
+	nrf_wifi_fmac_vif_update_if_type(rpu_ctx_lnx->rpu_ctx,
 					 vif_ctx_lnx->if_idx, iftype);
 
 	wdev->iftype = iftype;
@@ -185,13 +185,13 @@ out:
 	return status;
 }
 
-int wifi_nrf_cfg80211_add_key(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_add_key(struct wiphy *wiphy, struct net_device *netdev,
 			      u8 key_index, bool pairwise, const u8 *mac_addr,
 			      struct key_params *params)
 {
 	struct wireless_dev *wdev = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_key_info *key_info = NULL;
 	int status = -1;
 
@@ -233,11 +233,11 @@ int wifi_nrf_cfg80211_add_key(struct wiphy *wiphy, struct net_device *netdev,
 	else
 		key_info->key_type = NRF_WIFI_KEYTYPE_GROUP;
 
-	status = wifi_nrf_fmac_add_key(rpu_ctx_lnx->rpu_ctx,
+	status = nrf_wifi_fmac_add_key(rpu_ctx_lnx->rpu_ctx,
 				       vif_ctx_lnx->if_idx, key_info, mac_addr);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_add_key failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_add_key failed\n", __func__);
 		goto out;
 	}
 
@@ -248,12 +248,12 @@ out:
 	return status;
 }
 
-int wifi_nrf_cfg80211_del_key(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_del_key(struct wiphy *wiphy, struct net_device *netdev,
 			      u8 key_idx, bool pairwise, const u8 *mac_addr)
 {
 	struct wireless_dev *wdev = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_key_info *key_info = NULL;
 	int status = -1;
 
@@ -274,11 +274,11 @@ int wifi_nrf_cfg80211_del_key(struct wiphy *wiphy, struct net_device *netdev,
 	key_info->key_type = pairwise ? NL80211_KEYTYPE_PAIRWISE :
 					NL80211_KEYTYPE_GROUP;
 
-	status = wifi_nrf_fmac_del_key(rpu_ctx_lnx->rpu_ctx,
+	status = nrf_wifi_fmac_del_key(rpu_ctx_lnx->rpu_ctx,
 				       vif_ctx_lnx->if_idx, key_info, mac_addr);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_del_key failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_del_key failed\n", __func__);
 		goto out;
 	}
 
@@ -289,13 +289,13 @@ out:
 	return status;
 }
 
-int wifi_nrf_cfg80211_set_def_key(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_set_def_key(struct wiphy *wiphy,
 				  struct net_device *netdev, u8 key_index,
 				  bool unicast, bool multicast)
 {
 	struct wireless_dev *wdev = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_key_info *key_info = NULL;
 	int status = -1;
 
@@ -321,11 +321,11 @@ int wifi_nrf_cfg80211_set_def_key(struct wiphy *wiphy,
 
 	key_info->key_idx = key_index;
 
-	status = wifi_nrf_fmac_set_key(rpu_ctx_lnx->rpu_ctx,
+	status = nrf_wifi_fmac_set_key(rpu_ctx_lnx->rpu_ctx,
 				       vif_ctx_lnx->if_idx, key_info);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_set_key failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_set_key failed\n", __func__);
 		goto out;
 	}
 
@@ -336,12 +336,12 @@ out:
 	return status;
 }
 
-int wifi_nrf_cfg80211_set_def_mgmt_key(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_set_def_mgmt_key(struct wiphy *wiphy,
 				       struct net_device *netdev, u8 key_index)
 {
 	struct wireless_dev *wdev = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_key_info *key_info = NULL;
 	int status = -1;
 
@@ -361,11 +361,11 @@ int wifi_nrf_cfg80211_set_def_mgmt_key(struct wiphy *wiphy,
 
 	key_info->nrf_wifi_flags |= NRF_WIFI_KEY_DEFAULT_MGMT;
 
-	status = wifi_nrf_fmac_set_key(rpu_ctx_lnx->rpu_ctx,
+	status = nrf_wifi_fmac_set_key(rpu_ctx_lnx->rpu_ctx,
 				       vif_ctx_lnx->if_idx, key_info);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_set_key failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_set_key failed\n", __func__);
 		goto out;
 	}
 
@@ -376,12 +376,12 @@ out:
 	return status;
 }
 
-int wifi_nrf_cfg80211_start_ap(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_start_ap(struct wiphy *wiphy, struct net_device *netdev,
 			       struct cfg80211_ap_settings *params)
 {
 	struct wireless_dev *wdev = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_start_ap_info *start_ap_info = NULL;
 	int status = -1;
 
@@ -508,11 +508,11 @@ out:
 	return status;
 }
 
-int wifi_nrf_cfg80211_chg_bcn(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_chg_bcn(struct wiphy *wiphy, struct net_device *netdev,
 			      struct cfg80211_beacon_data *params)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_set_beacon_info *bcn_info = NULL;
 	int status = -1;
 
@@ -553,11 +553,11 @@ out:
 	return status;
 }
 
-int wifi_nrf_cfg80211_stop_ap(struct wiphy *wiphy, struct net_device *netdev)
+int nrf_wifi_cfg80211_stop_ap(struct wiphy *wiphy, struct net_device *netdev)
 {
 	struct wireless_dev *wdev = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	int status = -1;
 
 	wdev = netdev->ieee80211_ptr;
@@ -568,12 +568,12 @@ int wifi_nrf_cfg80211_stop_ap(struct wiphy *wiphy, struct net_device *netdev)
 	return status;
 }
 
-int wifi_nrf_cfg80211_add_sta(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_add_sta(struct wiphy *wiphy, struct net_device *netdev,
 			      const u8 *mac, struct station_parameters *params)
 {
 	struct wireless_dev *wdev = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_add_sta_info *add_sta_info = NULL;
 	struct nl80211_sta_flag_update *flags2 = NULL;
 	int status = -1;
@@ -660,12 +660,12 @@ out:
 	return status;
 }
 
-int wifi_nrf_cfg80211_del_sta(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_del_sta(struct wiphy *wiphy, struct net_device *netdev,
 			      struct station_del_parameters *params)
 {
 	struct wireless_dev *wdev = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_del_sta_info *del_sta_info = NULL;
 	int status = -1;
 
@@ -697,12 +697,12 @@ out:
 	return status;
 }
 
-int wifi_nrf_cfg80211_chg_sta(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_chg_sta(struct wiphy *wiphy, struct net_device *netdev,
 			      const u8 *mac, struct station_parameters *params)
 {
 	struct wireless_dev *wdev = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_chg_sta_info *chg_sta_info = NULL;
 	struct nrf_wifi_sta_flag_update *flags2_info = NULL;
 	struct nl80211_sta_flag_update *flags2 = NULL;
@@ -759,11 +759,11 @@ int wifi_nrf_cfg80211_chg_sta(struct wiphy *wiphy, struct net_device *netdev,
 	if (params->max_sp)
 		chg_sta_info->wme_max_sp = params->max_sp;
 
-	status = wifi_nrf_fmac_chg_sta(rpu_ctx_lnx->rpu_ctx,
+	status = nrf_wifi_fmac_chg_sta(rpu_ctx_lnx->rpu_ctx,
 				       vif_ctx_lnx->if_idx, chg_sta_info);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_chg_sta failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_chg_sta failed\n", __func__);
 		goto out;
 	}
 
@@ -774,12 +774,12 @@ out:
 	return status;
 }
 
-int wifi_nrf_cfg80211_chg_bss(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_chg_bss(struct wiphy *wiphy, struct net_device *netdev,
 			      struct bss_parameters *params)
 {
 	struct wireless_dev *wdev = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_bss_info *bss_info = NULL;
 	int status = -1;
 
@@ -817,7 +817,7 @@ out:
 	return status;
 }
 
-int wifi_nrf_cfg80211_set_txq_params(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_set_txq_params(struct wiphy *wiphy,
 				     struct net_device *netdev,
 				     struct ieee80211_txq_params *params)
 {
@@ -826,12 +826,12 @@ int wifi_nrf_cfg80211_set_txq_params(struct wiphy *wiphy,
 	return 0;
 }
 
-int wifi_nrf_cfg80211_scan(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_scan(struct wiphy *wiphy,
 			   struct cfg80211_scan_request *req)
 {
 	struct wireless_dev *wdev = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_scan_info *scan_info = NULL;
 	int status = -1;
 	wdev = req->wdev;
@@ -856,15 +856,15 @@ int wifi_nrf_cfg80211_scan(struct wiphy *wiphy,
 		goto out;
 	}
 	scan_info->scan_reason = SCAN_DISPLAY;
-	status = wifi_nrf_fmac_scan(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx,
+	status = nrf_wifi_fmac_scan(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx,
 				    scan_info);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_scan failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_scan failed\n", __func__);
 		goto out;
 	}
 
-	vif_ctx_lnx->wifi_nrf_scan_req = req;
+	vif_ctx_lnx->nrf_wifi_scan_req = req;
 
 	get_scan_results = 0;
 
@@ -874,12 +874,12 @@ out:
 	return status;
 }
 
-void wifi_nrf_cfg80211_scan_start_callbk_fn(
+void nrf_wifi_cfg80211_scan_start_callbk_fn(
 	void *os_vif_ctx,
 	struct nrf_wifi_umac_event_trigger_scan *scan_start_event,
 	unsigned int event_len)
 {
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 
 	vif_ctx_lnx = os_vif_ctx;
 
@@ -887,7 +887,7 @@ void wifi_nrf_cfg80211_scan_start_callbk_fn(
 	return;
 }
 
-static void wifi_nrf_cfg80211_scan_results(
+static void nrf_wifi_cfg80211_scan_results(
 	struct net_device *dev,
 	struct nrf_wifi_umac_event_new_scan_results *new_scan_results)
 {
@@ -921,15 +921,15 @@ static void wifi_nrf_cfg80211_scan_results(
 }
 
 static void
-wifi_nrf_cfg80211_scan_done(struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx,
+nrf_wifi_cfg80211_scan_done(struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx,
 			    int aborted)
 {
-	if (vif_ctx_lnx->wifi_nrf_scan_req) {
+	if (vif_ctx_lnx->nrf_wifi_scan_req) {
 		struct cfg80211_scan_info info = {};
 
 		info.aborted = aborted;
-		cfg80211_scan_done(vif_ctx_lnx->wifi_nrf_scan_req, &info);
-		vif_ctx_lnx->wifi_nrf_scan_req = NULL;
+		cfg80211_scan_done(vif_ctx_lnx->nrf_wifi_scan_req, &info);
+		vif_ctx_lnx->nrf_wifi_scan_req = NULL;
 	}
 }
 
@@ -937,8 +937,8 @@ void nrf_wifi_cfg80211_rx_bcn_prb_rsp_callbk_fn(void *os_vif_ctx, void *frm,
 						unsigned short frequency,
 						short signal)
 {
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
 	struct sk_buff *skb = NULL;
 	struct ieee80211_mgmt *mgmt = NULL;
 	struct cfg80211_inform_bss bss_meta = {};
@@ -960,25 +960,25 @@ void nrf_wifi_cfg80211_rx_bcn_prb_rsp_callbk_fn(void *os_vif_ctx, void *frm,
 					     mgmt, len, GFP_ATOMIC);
 }
 
-void wifi_nrf_cfg80211_scan_res_callbk_fn(
+void nrf_wifi_cfg80211_scan_res_callbk_fn(
 	void *os_vif_ctx, struct nrf_wifi_umac_event_new_scan_results *scan_res,
 	unsigned int event_len, bool more_res)
 {
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
 
 	vif_ctx_lnx = os_vif_ctx;
 	rpu_ctx_lnx = vif_ctx_lnx->rpu_ctx;
 
-	wifi_nrf_cfg80211_scan_results(vif_ctx_lnx->netdev, scan_res);
+	nrf_wifi_cfg80211_scan_results(vif_ctx_lnx->netdev, scan_res);
 
 	if (!more_res)
-		wifi_nrf_cfg80211_scan_done(vif_ctx_lnx, false);
+		nrf_wifi_cfg80211_scan_done(vif_ctx_lnx, false);
 }
 
-void umac_event_scan_done(struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx)
+void umac_event_scan_done(struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
 	struct nrf_wifi_umac_cmd_get_scan_results *scan_results = NULL;
 	int len = 0;
 
@@ -997,36 +997,36 @@ void umac_event_scan_done(struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx)
 	get_scan_results = 1;
 }
 
-void wifi_nrf_cfg80211_scan_done_callbk_fn(
+void nrf_wifi_cfg80211_scan_done_callbk_fn(
 	void *os_vif_ctx,
 	struct nrf_wifi_umac_event_trigger_scan *scan_done_event,
 	unsigned int event_len)
 {
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 
 	vif_ctx_lnx = os_vif_ctx;
 
-	wifi_nrf_cfg80211_scan_done(vif_ctx_lnx, false);
+	nrf_wifi_cfg80211_scan_done(vif_ctx_lnx, false);
 }
 
-void wifi_nrf_cfg80211_scan_abort_callbk_fn(
+void nrf_wifi_cfg80211_scan_abort_callbk_fn(
 	void *os_vif_ctx,
 	struct nrf_wifi_umac_event_trigger_scan *scan_done_event,
 	unsigned int event_len)
 {
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 
 	vif_ctx_lnx = os_vif_ctx;
 
-	wifi_nrf_cfg80211_scan_done(vif_ctx_lnx, true);
+	nrf_wifi_cfg80211_scan_done(vif_ctx_lnx, true);
 }
 
-int wifi_nrf_cfg80211_auth(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_auth(struct wiphy *wiphy, struct net_device *netdev,
 			   struct cfg80211_auth_request *req)
 {
 	struct wireless_dev *wdev = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_auth_info *auth_info = NULL;
 	const u8 *ssid_ie = NULL;
 	int status = -1;
@@ -1108,11 +1108,11 @@ int wifi_nrf_cfg80211_auth(struct wiphy *wiphy, struct net_device *netdev,
 			       auth_info->sae.sae_data_len, 1);
 #endif
 	}
-	status = wifi_nrf_fmac_auth(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx,
+	status = nrf_wifi_fmac_auth(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx,
 				    auth_info);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_auth failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_auth failed\n", __func__);
 		goto out;
 	}
 
@@ -1123,11 +1123,11 @@ out:
 	return status;
 }
 
-void wifi_nrf_cfg80211_auth_resp_callbk_fn(
+void nrf_wifi_cfg80211_auth_resp_callbk_fn(
 	void *os_vif_ctx, struct nrf_wifi_umac_event_mlme *auth_resp_event,
 	unsigned int event_len)
 {
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 
 	vif_ctx_lnx = os_vif_ctx;
 
@@ -1135,13 +1135,13 @@ void wifi_nrf_cfg80211_auth_resp_callbk_fn(
 			      auth_resp_event->frame.frame_len);
 }
 
-int wifi_nrf_cfg80211_assoc(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_assoc(struct wiphy *wiphy, struct net_device *netdev,
 			    struct cfg80211_assoc_request *req)
 {
 	struct wireless_dev *wdev = NULL;
 	struct nrf_wifi_umac_assoc_info *assoc_info = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	const u8 *ssid_ie = NULL;
 	int status = -1;
 
@@ -1189,11 +1189,11 @@ int wifi_nrf_cfg80211_assoc(struct wiphy *wiphy, struct net_device *netdev,
 
 	assoc_info->control_port = req->crypto.control_port;
 
-	status = wifi_nrf_fmac_assoc(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx,
+	status = nrf_wifi_fmac_assoc(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx,
 				     assoc_info);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_assoc failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_assoc failed\n", __func__);
 		goto out;
 	}
 
@@ -1204,11 +1204,11 @@ out:
 	return status;
 }
 
-void wifi_nrf_cfg80211_assoc_resp_callbk_fn(
+void nrf_wifi_cfg80211_assoc_resp_callbk_fn(
 	void *os_vif_ctx, struct nrf_wifi_umac_event_mlme *assoc_resp_event,
 	unsigned int event_len)
 {
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 
 	vif_ctx_lnx = os_vif_ctx;
 
@@ -1217,12 +1217,12 @@ void wifi_nrf_cfg80211_assoc_resp_callbk_fn(
 			       assoc_resp_event->frame.frame_len, -1, NULL, 0);
 }
 
-int wifi_nrf_cfg80211_deauth(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_deauth(struct wiphy *wiphy, struct net_device *netdev,
 			     struct cfg80211_deauth_request *req)
 {
 	struct wireless_dev *wdev = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_disconn_info *deauth_info = NULL;
 	int status = -1;
 
@@ -1246,11 +1246,11 @@ int wifi_nrf_cfg80211_deauth(struct wiphy *wiphy, struct net_device *netdev,
 		deauth_info->nrf_wifi_flags |=
 			NRF_WIFI_CMD_MLME_LOCAL_STATE_CHANGE;
 
-	status = wifi_nrf_fmac_deauth(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx,
+	status = nrf_wifi_fmac_deauth(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx,
 				      deauth_info);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_deauth failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_deauth failed\n", __func__);
 		goto out;
 	}
 
@@ -1261,11 +1261,11 @@ out:
 	return status;
 }
 
-void wifi_nrf_cfg80211_deauth_callbk_fn(
+void nrf_wifi_cfg80211_deauth_callbk_fn(
 	void *os_vif_ctx, struct nrf_wifi_umac_event_mlme *deauth_event,
 	unsigned int event_len)
 {
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 
 	vif_ctx_lnx = os_vif_ctx;
 
@@ -1273,12 +1273,12 @@ void wifi_nrf_cfg80211_deauth_callbk_fn(
 			      deauth_event->frame.frame_len, false);
 }
 
-int wifi_nrf_cfg80211_disassoc(struct wiphy *wiphy, struct net_device *netdev,
+int nrf_wifi_cfg80211_disassoc(struct wiphy *wiphy, struct net_device *netdev,
 			       struct cfg80211_disassoc_request *req)
 {
 	struct wireless_dev *wdev = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_disconn_info *disassoc_info = NULL;
 	int status = -1;
 
@@ -1302,11 +1302,11 @@ int wifi_nrf_cfg80211_disassoc(struct wiphy *wiphy, struct net_device *netdev,
 		disassoc_info->nrf_wifi_flags |=
 			NRF_WIFI_CMD_MLME_LOCAL_STATE_CHANGE;
 
-	status = wifi_nrf_fmac_disassoc(rpu_ctx_lnx->rpu_ctx,
+	status = nrf_wifi_fmac_disassoc(rpu_ctx_lnx->rpu_ctx,
 					vif_ctx_lnx->if_idx, disassoc_info);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_disassoc failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_disassoc failed\n", __func__);
 		goto out;
 	}
 
@@ -1320,11 +1320,11 @@ out:
 	return status;
 }
 
-void wifi_nrf_cfg80211_disassoc_callbk_fn(
+void nrf_wifi_cfg80211_disassoc_callbk_fn(
 	void *os_vif_ctx, struct nrf_wifi_umac_event_mlme *disassoc_event,
 	unsigned int event_len)
 {
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 
 	vif_ctx_lnx = os_vif_ctx;
 
@@ -1332,12 +1332,12 @@ void wifi_nrf_cfg80211_disassoc_callbk_fn(
 			      disassoc_event->frame.frame_len, false);
 }
 
-int wifi_nrf_cfg80211_mgmt_tx(struct wiphy *wiphy, struct wireless_dev *wdev,
+int nrf_wifi_cfg80211_mgmt_tx(struct wiphy *wiphy, struct wireless_dev *wdev,
 			      struct cfg80211_mgmt_tx_params *params,
 			      u64 *cookie)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_mgmt_tx_info *mgmt_tx_info = NULL;
 	int status = -1;
 
@@ -1393,11 +1393,11 @@ int wifi_nrf_cfg80211_mgmt_tx(struct wiphy *wiphy, struct wireless_dev *wdev,
 	/* Going to wpa_supplicant */
 	*cookie = cmd_frame_cookie_g;
 
-	status = wifi_nrf_fmac_mgmt_tx(rpu_ctx_lnx->rpu_ctx,
+	status = nrf_wifi_fmac_mgmt_tx(rpu_ctx_lnx->rpu_ctx,
 				       vif_ctx_lnx->if_idx, mgmt_tx_info);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_mgmt_tx failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_mgmt_tx failed\n", __func__);
 		goto out;
 	}
 
@@ -1408,14 +1408,14 @@ out:
 	return status;
 }
 
-void wifi_nrf_cfg80211_mgmt_frame_reg(struct wiphy *wiphy,
+void nrf_wifi_cfg80211_mgmt_frame_reg(struct wiphy *wiphy,
 				      struct wireless_dev *wdev,
 				      struct mgmt_frame_regs *upd)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_mgmt_frame_info *frame_info = NULL;
-	struct wifi_nrf_cfg80211_mgmt_registration *reg = NULL;
+	struct nrf_wifi_cfg80211_mgmt_registration *reg = NULL;
 	bool frame_type_match = false;
 
 	vif_ctx_lnx = netdev_priv(wdev->netdev);
@@ -1443,11 +1443,11 @@ out:
 	return;
 }
 
-void wifi_nrf_cfg80211_mgmt_rx_callbk_fn(
+void nrf_wifi_cfg80211_mgmt_rx_callbk_fn(
 	void *os_vif_ctx, struct nrf_wifi_umac_event_mlme *mgmt_rx_event,
 	unsigned int event_len)
 {
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 
 	vif_ctx_lnx = os_vif_ctx;
 
@@ -1458,11 +1458,11 @@ void wifi_nrf_cfg80211_mgmt_rx_callbk_fn(
 			 mgmt_rx_event->nrf_wifi_flags);
 }
 
-void wifi_nrf_cfg80211_unprot_mlme_mgmt_rx_callbk_fn(
+void nrf_wifi_cfg80211_unprot_mlme_mgmt_rx_callbk_fn(
 	void *os_vif_ctx, struct nrf_wifi_umac_event_mlme *unprot_mlme_event,
 	unsigned int event_len)
 {
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 
 	vif_ctx_lnx = os_vif_ctx;
 
@@ -1471,12 +1471,12 @@ void wifi_nrf_cfg80211_unprot_mlme_mgmt_rx_callbk_fn(
 				     unprot_mlme_event->frame.frame_len);
 }
 
-void wifi_nrf_cfg80211_tx_status_callbk_fn(
+void nrf_wifi_cfg80211_tx_status_callbk_fn(
 	void *os_vif_ctx, struct nrf_wifi_umac_event_mlme *tx_status_event,
 	unsigned int event_len)
 {
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
 	unsigned long long host_cookie = 0;
 	struct cookie_info *cookie_info = NULL;
 	struct cookie_info *tmp = NULL;
@@ -1511,11 +1511,11 @@ void wifi_nrf_cfg80211_tx_status_callbk_fn(
 				GFP_ATOMIC);
 }
 
-int wifi_nrf_cfg80211_start_p2p_dev(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_start_p2p_dev(struct wiphy *wiphy,
 				    struct wireless_dev *wdev)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	int status = -1;
 
 	vif_ctx_lnx = netdev_priv(wdev->netdev);
@@ -1523,23 +1523,23 @@ int wifi_nrf_cfg80211_start_p2p_dev(struct wiphy *wiphy,
 	return status;
 }
 
-void wifi_nrf_cfg80211_stop_p2p_dev(struct wiphy *wiphy,
+void nrf_wifi_cfg80211_stop_p2p_dev(struct wiphy *wiphy,
 				    struct wireless_dev *wdev)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 
 	vif_ctx_lnx = netdev_priv(wdev->netdev);
 	rpu_ctx_lnx = vif_ctx_lnx->rpu_ctx;
 }
 
-int wifi_nrf_cfg80211_remain_on_channel(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_remain_on_channel(struct wiphy *wiphy,
 					struct wireless_dev *wdev,
 					struct ieee80211_channel *chan,
 					unsigned int duration, u64 *cookie)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	int if_index = -1;
 	int status = -1;
 	struct remain_on_channel_info *roc_info = NULL;
@@ -1573,12 +1573,12 @@ out:
 	return status;
 }
 
-void wifi_nrf_cfg80211_roc_callbk_fn(
+void nrf_wifi_cfg80211_roc_callbk_fn(
 	void *os_vif_ctx, struct nrf_wifi_event_remain_on_channel *roc_event,
 	unsigned int event_len)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	unsigned long long host_cookie = 0;
 	struct cookie_info *cookie_info = NULL;
 	struct cookie_info *tmp = NULL;
@@ -1613,12 +1613,12 @@ void wifi_nrf_cfg80211_roc_callbk_fn(
 	}
 }
 
-int wifi_nrf_cfg80211_cancel_remain_on_channel(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_cancel_remain_on_channel(struct wiphy *wiphy,
 					       struct wireless_dev *wdev,
 					       u64 cookie)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	int if_index = -1;
 	int status = -1;
 
@@ -1629,13 +1629,13 @@ int wifi_nrf_cfg80211_cancel_remain_on_channel(struct wiphy *wiphy,
 	return status;
 }
 
-void wifi_nrf_cfg80211_roc_cancel_callbk_fn(
+void nrf_wifi_cfg80211_roc_cancel_callbk_fn(
 	void *os_vif_ctx,
 	struct nrf_wifi_event_remain_on_channel *roc_cancel_event,
 	unsigned int event_len)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	unsigned long long host_cookie = 0;
 	struct cookie_info *cookie_info = NULL;
 	struct cookie_info *tmp = NULL;
@@ -1669,7 +1669,7 @@ void wifi_nrf_cfg80211_roc_cancel_callbk_fn(
 	}
 }
 
-int wifi_nrf_cfg80211_probe_client(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_probe_client(struct wiphy *wiphy,
 				   struct net_device *netdev, const u8 *peer,
 				   u64 *cookie)
 {
@@ -1677,9 +1677,9 @@ int wifi_nrf_cfg80211_probe_client(struct wiphy *wiphy,
 	return -1;
 }
 
-int wifi_nrf_cfg80211_suspend(struct wiphy *wiphy, struct cfg80211_wowlan *wow)
+int nrf_wifi_cfg80211_suspend(struct wiphy *wiphy, struct cfg80211_wowlan *wow)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
 	int status = 0;
 
 	rpu_ctx_lnx = wiphy_priv(wiphy);
@@ -1719,9 +1719,9 @@ out:
 	return status;
 }
 
-int wifi_nrf_cfg80211_resume(struct wiphy *wiphy)
+int nrf_wifi_cfg80211_resume(struct wiphy *wiphy)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
 	int status = -1;
 
 	rpu_ctx_lnx = wiphy_priv(wiphy);
@@ -1729,9 +1729,9 @@ int wifi_nrf_cfg80211_resume(struct wiphy *wiphy)
 	return status;
 }
 
-void wifi_nrf_cfg80211_set_wakeup(struct wiphy *wiphy, bool enabled)
+void nrf_wifi_cfg80211_set_wakeup(struct wiphy *wiphy, bool enabled)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
 
 	rpu_ctx_lnx = wiphy_priv(wiphy);
 
@@ -1742,12 +1742,12 @@ void wifi_nrf_cfg80211_set_wakeup(struct wiphy *wiphy, bool enabled)
 	return;
 }
 
-int wifi_nrf_cfg80211_set_power_mgmt(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_set_power_mgmt(struct wiphy *wiphy,
 				     struct net_device *netdev, bool enabled,
 				     int timeout)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	int status = -1;
 
 	rpu_ctx_lnx = wiphy_priv(wiphy);
@@ -1757,11 +1757,11 @@ int wifi_nrf_cfg80211_set_power_mgmt(struct wiphy *wiphy,
 	 * timeout value passed by upper layer
 	 * it will use its own value
 	 */
-	status = wifi_nrf_fmac_set_power_save(rpu_ctx_lnx->rpu_ctx,
+	status = nrf_wifi_fmac_set_power_save(rpu_ctx_lnx->rpu_ctx,
 					      vif_ctx_lnx->if_idx, enabled);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_set_power_save failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_set_power_save failed\n", __func__);
 		goto out;
 	}
 
@@ -1769,12 +1769,12 @@ out:
 	return status;
 }
 
-int wifi_nrf_cfg80211_set_qos_map(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_set_qos_map(struct wiphy *wiphy,
 				  struct net_device *netdev,
 				  struct cfg80211_qos_map *qos_map)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_qos_map_info *qos_map_info = NULL;
 	int status = -1;
 
@@ -1794,11 +1794,11 @@ int wifi_nrf_cfg80211_set_qos_map(struct wiphy *wiphy,
 		qos_map_info->qos_map_info_len =
 			sizeof(struct cfg80211_qos_map);
 	}
-	status = wifi_nrf_fmac_set_qos_map(rpu_ctx_lnx->rpu_ctx,
+	status = nrf_wifi_fmac_set_qos_map(rpu_ctx_lnx->rpu_ctx,
 					   vif_ctx_lnx->if_idx, qos_map_info);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_set_qos_map failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_set_qos_map failed\n", __func__);
 		goto out;
 	}
 out:
@@ -2055,17 +2055,17 @@ static void sta_set_sinfo(struct nrf_wifi_sta_info *sta,
 	}
 }
 
-int wifi_nrf_cfg80211_get_station(struct wiphy *wiphy, struct net_device *dev,
+int nrf_wifi_cfg80211_get_station(struct wiphy *wiphy, struct net_device *dev,
 				  const u8 *mac, struct station_info *sinfo)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	unsigned int count = 50;
 
 	vif_ctx_lnx = netdev_priv(dev);
 	rpu_ctx_lnx = vif_ctx_lnx->rpu_ctx;
 
-	wifi_nrf_fmac_get_station(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx,
+	nrf_wifi_fmac_get_station(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx,
 				  (void *)mac);
 
 	pr_debug("%s: Waiting for response from RPU (Get STA)\n", __func__);
@@ -2088,11 +2088,11 @@ int wifi_nrf_cfg80211_get_station(struct wiphy *wiphy, struct net_device *dev,
 	return 0;
 }
 
-int wifi_nrf_cfg80211_get_tx_power(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_get_tx_power(struct wiphy *wiphy,
 				   struct wireless_dev *wdev, int *dbm)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	unsigned int count = 50;
 
 	vif_ctx_lnx = netdev_priv(wdev->netdev);
@@ -2100,7 +2100,7 @@ int wifi_nrf_cfg80211_get_tx_power(struct wiphy *wiphy,
 
 	vif_ctx_lnx->event_tx_power = 0;
 
-	wifi_nrf_fmac_get_tx_power(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx);
+	nrf_wifi_fmac_get_tx_power(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx);
 
 	pr_debug("%s: Waiting for response from RPU (Get TX power)\n",
 		 __func__);
@@ -2121,19 +2121,19 @@ int wifi_nrf_cfg80211_get_tx_power(struct wiphy *wiphy,
 	return 0;
 }
 
-int wifi_nrf_cfg80211_get_channel(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_get_channel(struct wiphy *wiphy,
 				  struct wireless_dev *wdev,
 				  struct cfg80211_chan_def *chandef)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	unsigned int count = 50;
 	int status = 0;
 
 	vif_ctx_lnx = netdev_priv(wdev->netdev);
 	rpu_ctx_lnx = vif_ctx_lnx->rpu_ctx;
 
-	wifi_nrf_fmac_get_channel(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx);
+	nrf_wifi_fmac_get_channel(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx);
 
 	pr_debug("%s: Waiting for response from RPU (Get Channel)\n", __func__);
 
@@ -2168,10 +2168,10 @@ out:
 	return status;
 }
 
-int wifi_nrf_cfg80211_set_wiphy_params(struct wiphy *wiphy,
+int nrf_wifi_cfg80211_set_wiphy_params(struct wiphy *wiphy,
 				       unsigned int changed)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
 	struct nrf_wifi_umac_set_wiphy_info *wiphy_info = NULL;
 	int status = -1;
 
@@ -2192,12 +2192,12 @@ int wifi_nrf_cfg80211_set_wiphy_params(struct wiphy *wiphy,
 	if (changed & WIPHY_PARAM_RETRY_SHORT)
 		wiphy_info->retry_short = wiphy->retry_short;
 
-	status = wifi_nrf_fmac_set_wiphy_params(
+	status = nrf_wifi_fmac_set_wiphy_params(
 		rpu_ctx_lnx->rpu_ctx, rpu_ctx_lnx->def_vif_ctx->if_idx,
 		wiphy_info);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_set_wiphy failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_set_wiphy failed\n", __func__);
 		goto out;
 	}
 
@@ -2210,51 +2210,51 @@ out:
 
 struct cfg80211_ops cfg80211_ops = {
 
-	.add_virtual_intf = wifi_nrf_cfg80211_add_vif,
-	.del_virtual_intf = wifi_nrf_cfg80211_del_vif,
-	.change_virtual_intf = wifi_nrf_cfg80211_chg_vif,
+	.add_virtual_intf = nrf_wifi_cfg80211_add_vif,
+	.del_virtual_intf = nrf_wifi_cfg80211_del_vif,
+	.change_virtual_intf = nrf_wifi_cfg80211_chg_vif,
 
-	.add_key = wifi_nrf_cfg80211_add_key,
-	.del_key = wifi_nrf_cfg80211_del_key,
-	.set_default_key = wifi_nrf_cfg80211_set_def_key,
-	.set_default_mgmt_key = wifi_nrf_cfg80211_set_def_mgmt_key,
+	.add_key = nrf_wifi_cfg80211_add_key,
+	.del_key = nrf_wifi_cfg80211_del_key,
+	.set_default_key = nrf_wifi_cfg80211_set_def_key,
+	.set_default_mgmt_key = nrf_wifi_cfg80211_set_def_mgmt_key,
 
-	.start_ap = wifi_nrf_cfg80211_start_ap,
-	.change_beacon = wifi_nrf_cfg80211_chg_bcn,
-	.stop_ap = wifi_nrf_cfg80211_stop_ap,
+	.start_ap = nrf_wifi_cfg80211_start_ap,
+	.change_beacon = nrf_wifi_cfg80211_chg_bcn,
+	.stop_ap = nrf_wifi_cfg80211_stop_ap,
 
-	.add_station = wifi_nrf_cfg80211_add_sta,
-	.del_station = wifi_nrf_cfg80211_del_sta,
-	.change_station = wifi_nrf_cfg80211_chg_sta,
+	.add_station = nrf_wifi_cfg80211_add_sta,
+	.del_station = nrf_wifi_cfg80211_del_sta,
+	.change_station = nrf_wifi_cfg80211_chg_sta,
 
-	.change_bss = wifi_nrf_cfg80211_chg_bss,
-	.set_txq_params = wifi_nrf_cfg80211_set_txq_params,
+	.change_bss = nrf_wifi_cfg80211_chg_bss,
+	.set_txq_params = nrf_wifi_cfg80211_set_txq_params,
 
-	.scan = wifi_nrf_cfg80211_scan,
-	.auth = wifi_nrf_cfg80211_auth,
-	.assoc = wifi_nrf_cfg80211_assoc,
-	.deauth = wifi_nrf_cfg80211_deauth,
-	.disassoc = wifi_nrf_cfg80211_disassoc,
+	.scan = nrf_wifi_cfg80211_scan,
+	.auth = nrf_wifi_cfg80211_auth,
+	.assoc = nrf_wifi_cfg80211_assoc,
+	.deauth = nrf_wifi_cfg80211_deauth,
+	.disassoc = nrf_wifi_cfg80211_disassoc,
 
-	.mgmt_tx = wifi_nrf_cfg80211_mgmt_tx,
-	.update_mgmt_frame_registrations = wifi_nrf_cfg80211_mgmt_frame_reg,
-	.start_p2p_device = wifi_nrf_cfg80211_start_p2p_dev,
-	.stop_p2p_device = wifi_nrf_cfg80211_stop_p2p_dev,
-	.remain_on_channel = wifi_nrf_cfg80211_remain_on_channel,
-	.cancel_remain_on_channel = wifi_nrf_cfg80211_cancel_remain_on_channel,
+	.mgmt_tx = nrf_wifi_cfg80211_mgmt_tx,
+	.update_mgmt_frame_registrations = nrf_wifi_cfg80211_mgmt_frame_reg,
+	.start_p2p_device = nrf_wifi_cfg80211_start_p2p_dev,
+	.stop_p2p_device = nrf_wifi_cfg80211_stop_p2p_dev,
+	.remain_on_channel = nrf_wifi_cfg80211_remain_on_channel,
+	.cancel_remain_on_channel = nrf_wifi_cfg80211_cancel_remain_on_channel,
 
-	.probe_client = wifi_nrf_cfg80211_probe_client,
+	.probe_client = nrf_wifi_cfg80211_probe_client,
 
-	.suspend = wifi_nrf_cfg80211_suspend,
-	.resume = wifi_nrf_cfg80211_resume,
-	.set_wakeup = wifi_nrf_cfg80211_set_wakeup,
-	.set_power_mgmt = wifi_nrf_cfg80211_set_power_mgmt,
-	.set_qos_map = wifi_nrf_cfg80211_set_qos_map,
+	.suspend = nrf_wifi_cfg80211_suspend,
+	.resume = nrf_wifi_cfg80211_resume,
+	.set_wakeup = nrf_wifi_cfg80211_set_wakeup,
+	.set_power_mgmt = nrf_wifi_cfg80211_set_power_mgmt,
+	.set_qos_map = nrf_wifi_cfg80211_set_qos_map,
 
-	.get_station = wifi_nrf_cfg80211_get_station,
-	.get_tx_power = wifi_nrf_cfg80211_get_tx_power,
-	.get_channel = wifi_nrf_cfg80211_get_channel,
-	.set_wiphy_params = wifi_nrf_cfg80211_set_wiphy_params,
+	.get_station = nrf_wifi_cfg80211_get_station,
+	.get_tx_power = nrf_wifi_cfg80211_get_tx_power,
+	.get_channel = nrf_wifi_cfg80211_get_channel,
+	.set_wiphy_params = nrf_wifi_cfg80211_set_wiphy_params,
 };
 #else /* CONFIG_NRF700X_RADIO_TEST */
 struct cfg80211_ops cfg80211_ops = {};
@@ -2395,7 +2395,7 @@ struct wiphy *cfg80211_if_init(void)
 	struct wiphy *wiphy = NULL;
 
 	/* Create the radio interface */
-	wiphy = wiphy_new_nm(&cfg80211_ops, sizeof(struct wifi_nrf_ctx_lnx),
+	wiphy = wiphy_new_nm(&cfg80211_ops, sizeof(struct nrf_wifi_ctx_lnx),
 			     NULL);
 
 	wiphy->mgmt_stypes = ieee80211_default_mgmt_stypes;

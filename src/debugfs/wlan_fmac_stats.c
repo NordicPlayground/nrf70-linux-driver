@@ -10,8 +10,8 @@
 #include "fmac_dbgfs_if.h"
 
 #ifndef CONFIG_NRF700X_RADIO_TEST
-static void wifi_nrf_wlan_fmac_dbgfs_stats_show_host(
-	struct seq_file *m, struct wifi_nrf_fmac_dev_ctx *fmac_dev_ctx,
+static void nrf_wifi_wlan_fmac_dbgfs_stats_show_host(
+	struct seq_file *m, struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 	struct rpu_host_stats *stats)
 {
 #ifdef DEBUG_MODE_SUPPORT
@@ -53,7 +53,7 @@ static void wifi_nrf_wlan_fmac_dbgfs_stats_show_host(
 }
 
 static void
-wifi_nrf_wlan_fmac_dbgfs_stats_show_umac(struct seq_file *m,
+nrf_wifi_wlan_fmac_dbgfs_stats_show_umac(struct seq_file *m,
 					 struct rpu_umac_stats *stats)
 {
 	seq_puts(m, "**************** UMAC STATS ****************\n");
@@ -390,7 +390,7 @@ wifi_nrf_wlan_fmac_dbgfs_stats_show_umac(struct seq_file *m,
 }
 
 static void
-wifi_nrf_wlan_fmac_dbgfs_stats_show_lmac(struct seq_file *m,
+nrf_wifi_wlan_fmac_dbgfs_stats_show_lmac(struct seq_file *m,
 					 struct rpu_lmac_stats *stats)
 {
 	seq_puts(m, "************* LMAC STATS ***********\n");
@@ -476,7 +476,7 @@ wifi_nrf_wlan_fmac_dbgfs_stats_show_lmac(struct seq_file *m,
 }
 #endif /* !CONFIG_NRF700X_RADIO_TEST */
 
-static void wifi_nrf_wlan_fmac_dbgfs_stats_show_phy(struct seq_file *m,
+static void nrf_wifi_wlan_fmac_dbgfs_stats_show_phy(struct seq_file *m,
 #ifdef CONFIG_NRF700X_RADIO_TEST
 						    int op_mode,
 #endif /* CONFIG_NRF700X_RADIO_TEST */
@@ -500,28 +500,28 @@ static void wifi_nrf_wlan_fmac_dbgfs_stats_show_phy(struct seq_file *m,
 	seq_printf(m, "dsss_crc32_fail_cnt=%d\n", stats->dsss_crc32_fail_cnt);
 }
 
-static int wifi_nrf_wlan_fmac_dbgfs_stats_show(struct seq_file *m, void *v)
+static int nrf_wifi_wlan_fmac_dbgfs_stats_show(struct seq_file *m, void *v)
 {
-	enum wifi_nrf_status status = WIFI_NRF_STATUS_FAIL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
 #ifdef DEBUG_MODE_SUPPORT
 	int stats_type = RPU_STATS_TYPE_ALL;
 #endif /* DEBUG_MODE_SUPPORT */
 	int op_mode = RPU_OP_MODE_MAX;
 	struct rpu_op_stats *stats = NULL;
 
-	rpu_ctx_lnx = (struct wifi_nrf_ctx_lnx *)m->private;
+	rpu_ctx_lnx = (struct nrf_wifi_ctx_lnx *)m->private;
 
 	stats = kzalloc(sizeof(*stats), GFP_KERNEL);
 
-	status = wifi_nrf_fmac_stats_get(rpu_ctx_lnx->rpu_ctx,
+	status = nrf_wifi_fmac_stats_get(rpu_ctx_lnx->rpu_ctx,
 #ifdef DEBUG_MODE_SUPPORT
 					 stats_type,
 #endif /* DEBUG_MODE_SUPPORT */
 					 op_mode, stats);
 
-	if (status != WIFI_NRF_STATUS_SUCCESS) {
-		pr_err("%s: wifi_nrf_fmac_stats_get failed\n", __func__);
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		pr_err("%s: nrf_wifi_fmac_stats_get failed\n", __func__);
 		goto out;
 	}
 
@@ -530,27 +530,27 @@ static int wifi_nrf_wlan_fmac_dbgfs_stats_show(struct seq_file *m, void *v)
 	if ((stats_type == RPU_STATS_TYPE_ALL) ||
 	    (stats_type == RPU_STATS_TYPE_HOST))
 #endif /* DEBUG_MODE_SUPPORT */
-		wifi_nrf_wlan_fmac_dbgfs_stats_show_host(
+		nrf_wifi_wlan_fmac_dbgfs_stats_show_host(
 			m, rpu_ctx_lnx->rpu_ctx, &stats->host);
 
 #ifdef DEBUG_MODE_SUPPORT
 	if ((stats_type == RPU_STATS_TYPE_ALL) ||
 	    (stats_type == RPU_STATS_TYPE_UMAC))
 #endif /* DEBUG_MODE_SUPPORT */
-		wifi_nrf_wlan_fmac_dbgfs_stats_show_umac(m, &stats->fw.umac);
+		nrf_wifi_wlan_fmac_dbgfs_stats_show_umac(m, &stats->fw.umac);
 
 #ifdef DEBUG_MODE_SUPPORT
 	if ((stats_type == RPU_STATS_TYPE_ALL) ||
 	    (stats_type == RPU_STATS_TYPE_LMAC))
 #endif /* DEBUG_MODE_SUPPORT */
-		wifi_nrf_wlan_fmac_dbgfs_stats_show_lmac(m, &stats->fw.lmac);
+		nrf_wifi_wlan_fmac_dbgfs_stats_show_lmac(m, &stats->fw.lmac);
 #endif /* !CONFIG_NRF700X_RADIO_TEST */
 
 #ifdef DEBUG_MODE_SUPPORT
 	if ((stats_type == RPU_STATS_TYPE_ALL) ||
 	    (stats_type == RPU_STATS_TYPE_PHY))
 #endif /* DEBUG_MODE_SUPPORT */
-		wifi_nrf_wlan_fmac_dbgfs_stats_show_phy(m,
+		nrf_wifi_wlan_fmac_dbgfs_stats_show_phy(m,
 #ifdef CONFIG_NRF700X_RADIO_TEST
 							op_mode,
 #endif /* CONFIG_NRF700X_RADIO_TEST */
@@ -651,10 +651,10 @@ out:
 
 static int open_stats(struct inode *inode, struct file *file)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx =
-		(struct wifi_nrf_ctx_lnx *)inode->i_private;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx =
+		(struct nrf_wifi_ctx_lnx *)inode->i_private;
 
-	return single_open(file, wifi_nrf_wlan_fmac_dbgfs_stats_show,
+	return single_open(file, nrf_wifi_wlan_fmac_dbgfs_stats_show,
 			   rpu_ctx_lnx);
 }
 
@@ -666,8 +666,8 @@ static const struct file_operations fops_wlan_fmac_stats = {
 	.release = single_release
 };
 
-int wifi_nrf_wlan_fmac_dbgfs_stats_init(struct dentry *root,
-					struct wifi_nrf_ctx_lnx *rpu_ctx_lnx)
+int nrf_wifi_wlan_fmac_dbgfs_stats_init(struct dentry *root,
+					struct nrf_wifi_ctx_lnx *rpu_ctx_lnx)
 {
 	int ret = 0;
 
@@ -689,13 +689,13 @@ int wifi_nrf_wlan_fmac_dbgfs_stats_init(struct dentry *root,
 	goto out;
 
 fail:
-	wifi_nrf_wlan_fmac_dbgfs_stats_deinit(rpu_ctx_lnx);
+	nrf_wifi_wlan_fmac_dbgfs_stats_deinit(rpu_ctx_lnx);
 
 out:
 	return ret;
 }
 
-void wifi_nrf_wlan_fmac_dbgfs_stats_deinit(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx)
+void nrf_wifi_wlan_fmac_dbgfs_stats_deinit(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx)
 {
 	if (rpu_ctx_lnx->dbgfs_wlan_stats_root)
 		debugfs_remove(rpu_ctx_lnx->dbgfs_wlan_stats_root);

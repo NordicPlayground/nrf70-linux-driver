@@ -17,12 +17,12 @@
 #include "driver_linux.h"
 #endif /* RPU_MODE_EXPLORER */
 
-struct wifi_nrf_fmac_vif_ctx_lnx {
-	struct wifi_nrf_ctx_lnx *rpu_ctx;
+struct nrf_wifi_fmac_vif_ctx_lnx {
+	struct nrf_wifi_ctx_lnx *rpu_ctx;
 	struct net_device *netdev;
 	struct wireless_dev *wdev;
 	struct cfg80211_bss *bss;
-	struct cfg80211_scan_request *wifi_nrf_scan_req;
+	struct cfg80211_scan_request *nrf_wifi_scan_req;
 
 	unsigned char if_idx;
 
@@ -44,9 +44,9 @@ struct wifi_nrf_fmac_vif_ctx_lnx {
 #endif
 };
 
-struct wifi_nrf_fmac_vif_ctx_lnx *
-wifi_nrf_wlan_fmac_add_vif(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx,
+struct nrf_wifi_fmac_vif_ctx_lnx *
+nrf_wifi_wlan_fmac_add_vif(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx,
 			   const char *name, char *mac_addr,
 			   enum nl80211_iftype if_type);
-void wifi_nrf_wlan_fmac_del_vif(struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx);
+void nrf_wifi_wlan_fmac_del_vif(struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx);
 #endif /* __FMAC_MAIN_H__ */

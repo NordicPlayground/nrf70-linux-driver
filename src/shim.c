@@ -33,8 +33,8 @@
 #include "rpu_hw_if.h"
 #include "spi_if.h"
 
-#define WIFI_NRF_SPI_DRV_NAME "wifi_nrf_spi"
-#define WIFI_NRF_SPI_DEV_NAME "nrf70-spi"
+#define NRF_WIFI_SPI_DRV_NAME "nrf_wifi_spi"
+#define NRF_WIFI_SPI_DEV_NAME "nrf70-spi"
 
 struct of_device_id nrf7002_driver_ids[] = { {
 						     .compatible =
@@ -629,26 +629,26 @@ static int shim_bus_qspi_ps_status(void *os_qspi_priv)
 }
 #endif
 
-static void shim_assert(int test_val, int val, enum wifi_nrf_assert_op_type op,
+static void shim_assert(int test_val, int val, enum nrf_wifi_assert_op_type op,
 			char *msg)
 {
 	switch (op) {
-	case WIFI_NRF_ASSERT_EQUAL_TO:
+	case NRF_WIFI_ASSERT_EQUAL_TO:
 		WARN(test_val != val, "%s", msg);
 		break;
-	case WIFI_NRF_ASSERT_NOT_EQUAL_TO:
+	case NRF_WIFI_ASSERT_NOT_EQUAL_TO:
 		WARN(test_val == val, "%s", msg);
 		break;
-	case WIFI_NRF_ASSERT_LESS_THAN:
+	case NRF_WIFI_ASSERT_LESS_THAN:
 		WARN(test_val >= val, "%s", msg);
 		break;
-	case WIFI_NRF_ASSERT_LESS_THAN_EQUAL_TO:
+	case NRF_WIFI_ASSERT_LESS_THAN_EQUAL_TO:
 		WARN(test_val > val, "%s", msg);
 		break;
-	case WIFI_NRF_ASSERT_GREATER_THAN:
+	case NRF_WIFI_ASSERT_GREATER_THAN:
 		WARN(test_val <= val, "%s", msg);
 		break;
-	case WIFI_NRF_ASSERT_GREATER_THAN_EQUAL_TO:
+	case NRF_WIFI_ASSERT_GREATER_THAN_EQUAL_TO:
 		WARN(test_val < val, "%s", msg);
 		break;
 	default:
@@ -681,9 +681,9 @@ static void shim_bus_spi_reg_drv(struct work_struct *drv_reg_work)
 	}
 }
 
-static enum wifi_nrf_status shim_bus_spi_dev_init(void *os_spi_dev_ctx)
+static enum nrf_wifi_status shim_bus_spi_dev_init(void *os_spi_dev_ctx)
 {
-	enum wifi_nrf_status status = WIFI_NRF_STATUS_FAIL;
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct shim_bus_spi_dev_ctx *lnx_spi_dev_ctx = NULL;
 	struct shim_bus_spi_priv *lnx_spi_priv = NULL;
 
@@ -692,7 +692,7 @@ static enum wifi_nrf_status shim_bus_spi_dev_init(void *os_spi_dev_ctx)
 
 	lnx_spi_priv->dev_init = true;
 
-	status = WIFI_NRF_STATUS_SUCCESS;
+	status = NRF_WIFI_STATUS_SUCCESS;
 
 	return status;
 }
@@ -759,10 +759,10 @@ static void shim_bus_spi_dev_rem(void *os_spi_dev_ctx)
 
 static int shim_bus_spi_probe(struct spi_device *spi_dev)
 {
-	enum wifi_nrf_status status = WIFI_NRF_STATUS_FAIL;
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct shim_bus_spi_priv *lnx_spi_priv = NULL;
 	struct shim_bus_spi_dev_ctx *lnx_spi_dev_ctx = NULL;
-	struct wifi_nrf_ctx_lnx *lnx_rpu_ctx = NULL;
+	struct nrf_wifi_ctx_lnx *lnx_rpu_ctx = NULL;
 	int ret = -1;
 	const struct spi_device_id *id = spi_get_device_id(spi_dev);
 
@@ -776,10 +776,10 @@ static int shim_bus_spi_probe(struct spi_device *spi_dev)
 
 	lnx_spi_priv->spi_dev = spi_dev;
 
-	lnx_rpu_ctx = wifi_nrf_fmac_dev_add_lnx();
+	lnx_rpu_ctx = nrf_wifi_fmac_dev_add_lnx();
 
 	if (!lnx_rpu_ctx) {
-		pr_err("%s: wifi_nrf_fmac_dev_add_lnx failed\n", __func__);
+		pr_err("%s: nrf_wifi_fmac_dev_add_lnx failed\n", __func__);
 		goto out;
 	}
 
@@ -787,10 +787,10 @@ static int shim_bus_spi_probe(struct spi_device *spi_dev)
 
 	lnx_spi_dev_ctx->lnx_rpu_ctx = lnx_rpu_ctx;
 
-	status = wifi_nrf_fmac_dev_init_lnx(lnx_rpu_ctx);
+	status = nrf_wifi_fmac_dev_init_lnx(lnx_rpu_ctx);
 
-	if (status != WIFI_NRF_STATUS_SUCCESS) {
-		pr_err("%s: wifi_nrf_fmac_dev_init_lnx failed\n", __func__);
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		pr_err("%s: nrf_wifi_fmac_dev_init_lnx failed\n", __func__);
 		goto out;
 	}
 
@@ -810,10 +810,10 @@ static int shim_bus_spi_remove(struct spi_device *spi_dev)
 	lnx_spi_priv = lnx_spi_dev_ctx->lnx_spi_priv;
 
 	if (lnx_spi_priv->dev_init) {
-		wifi_nrf_fmac_dev_deinit_lnx(lnx_spi_dev_ctx->lnx_rpu_ctx);
+		nrf_wifi_fmac_dev_deinit_lnx(lnx_spi_dev_ctx->lnx_rpu_ctx);
 	}
 	if (lnx_spi_priv->dev_added) {
-		wifi_nrf_fmac_dev_rem_lnx(lnx_spi_dev_ctx->lnx_rpu_ctx);
+		nrf_wifi_fmac_dev_rem_lnx(lnx_spi_dev_ctx->lnx_rpu_ctx);
 	}
 	return 0;
 }
@@ -847,13 +847,13 @@ static irqreturn_t shim_spi_irq_handler(int irq, void *p)
 	return IRQ_HANDLED;
 }
 
-static enum wifi_nrf_status
+static enum nrf_wifi_status
 shim_bus_spi_intr_reg(void *os_spi_dev_ctx, void *callbk_data,
 		      int (*callbk_fn)(void *callbk_data))
 {
 	struct shim_bus_spi_dev_ctx *lnx_spi_dev_ctx = NULL;
 	struct shim_bus_spi_priv *lnx_spi_priv = NULL;
-	enum wifi_nrf_status status = WIFI_NRF_STATUS_FAIL;
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	unsigned int irq_flags = IRQ_TYPE_EDGE_RISING;
 	int ret = -1;
 	int irq_number;
@@ -907,7 +907,7 @@ shim_bus_spi_intr_reg(void *os_spi_dev_ctx, void *callbk_data,
 	}
 
 	INIT_WORK(&lnx_spi_priv->intr_priv.work, irq_work_handler);
-	status = WIFI_NRF_STATUS_SUCCESS;
+	status = NRF_WIFI_STATUS_SUCCESS;
 out:
 	return status;
 }
@@ -927,7 +927,7 @@ static void shim_bus_spi_intr_unreg(void *os_spi_dev_ctx)
 
 static void
 shim_bus_spi_dev_host_map_get(void *os_spi_dev_ctx,
-			      struct wifi_nrf_osal_host_map *host_map)
+			      struct nrf_wifi_osal_host_map *host_map)
 {
 	if (!os_spi_dev_ctx || !host_map) {
 		pr_err("%s: Invalid parameters\n", __func__);
@@ -977,11 +977,11 @@ static void *shim_bus_spi_init(void)
 	lnx_spi_priv->spi_dev_id = lnx_spi_dev_id;
 
 	lnx_spi_dev_id = &nrf7002[0];
-	memcpy(lnx_spi_dev_id->name, WIFI_NRF_SPI_DEV_NAME,
-	       sizeof(WIFI_NRF_SPI_DEV_NAME));
+	memcpy(lnx_spi_dev_id->name, NRF_WIFI_SPI_DEV_NAME,
+	       sizeof(NRF_WIFI_SPI_DEV_NAME));
 	lnx_spi_dev_id->driver_data = (kernel_ulong_t)lnx_spi_priv;
 
-	lnx_spi_drv->driver.name = WIFI_NRF_SPI_DRV_NAME;
+	lnx_spi_drv->driver.name = NRF_WIFI_SPI_DRV_NAME;
 	lnx_spi_drv->driver.of_match_table = of_match_ptr(nrf7002_driver_ids);
 	lnx_spi_drv->id_table = lnx_spi_dev_id;
 	lnx_spi_drv->probe = shim_bus_spi_probe;
@@ -1014,7 +1014,7 @@ static void shim_bus_spi_deinit(void *os_spi_priv)
 	kfree(lnx_spi_priv);
 }
 
-const struct wifi_nrf_osal_ops wifi_nrf_os_ops = {
+const struct nrf_wifi_osal_ops nrf_wifi_os_ops = {
 	.mem_alloc = shim_mem_alloc,
 	.mem_zalloc = shim_mem_zalloc,
 	.mem_free = shim_mem_free,
@@ -1108,7 +1108,7 @@ const struct wifi_nrf_osal_ops wifi_nrf_os_ops = {
 	.strlen = shim_strlen,
 };
 
-const struct wifi_nrf_osal_ops *get_os_ops(void)
+const struct nrf_wifi_osal_ops *get_os_ops(void)
 {
-	return &wifi_nrf_os_ops;
+	return &nrf_wifi_os_ops;
 }
