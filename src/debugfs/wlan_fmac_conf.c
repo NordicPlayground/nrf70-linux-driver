@@ -46,6 +46,8 @@ static int wifi_nrf_wlan_fmac_conf_disp(struct seq_file *m, void *v)
 	seq_printf(m, "power_save = %s\n",
 		   conf_params->power_save ? "ON" : "OFF");
 	seq_printf(m, "he_gi = %d\n", conf_params->he_gi);
+	seq_printf(m, "rts_threshold = %d\n", conf_params->rts_threshold);
+
 	return 0;
 }
 
@@ -151,6 +153,40 @@ static ssize_t wifi_nrf_wlan_fmac_conf_write(struct file *file,
 		if (rpu_ctx_lnx->conf_params.he_gi == val)
 			goto out;
 		rpu_ctx_lnx->conf_params.he_gi = val;
+	} else if (param_get_val(conf_buf, "rts_threshold=", &val)) {
+		struct nrf_wifi_umac_set_wiphy_info *wiphy_info = NULL;
+
+		if (val <= 0) {
+			snprintf(err_str, MAX_ERR_STR_SIZE,
+				 "Invalid value %lu\n", val);
+			ret_val = -EINVAL;
+			goto error;
+		}
+
+		if (rpu_ctx_lnx->conf_params.rts_threshold == val)
+			goto out;
+
+		wiphy_info = kzalloc(sizeof(*wiphy_info), GFP_KERNEL);
+
+		if (!wiphy_info) {
+			snprintf(err_str, MAX_ERR_STR_SIZE,
+				 "Unable to allocate memory\n");
+			goto error;
+		}
+		wiphy_info->rts_threshold = val;
+
+		status = wifi_nrf_fmac_set_wiphy_params(rpu_ctx_lnx->rpu_ctx, 0,
+							wiphy_info);
+
+		if (status != WIFI_NRF_STATUS_SUCCESS) {
+			snprintf(err_str, MAX_ERR_STR_SIZE,
+				 "Programming rts_threshold failed\n");
+			goto error;
+		}
+		if (wiphy_info)
+			kfree(wiphy_info);
+
+		rpu_ctx_lnx->conf_params.rts_threshold = val;
 	} else {
 		snprintf(err_str, MAX_ERR_STR_SIZE,
 			 "Invalid parameter name: %s\n", conf_buf);
