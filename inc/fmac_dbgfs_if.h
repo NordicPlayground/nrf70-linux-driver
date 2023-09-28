@@ -11,20 +11,20 @@
 
 #include "fmac_main.h"
 
-int wifi_nrf_dbgfs_init(void);
-void wifi_nrf_dbgfs_deinit(void);
-int wifi_nrf_wlan_fmac_dbgfs_init(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx);
-void wifi_nrf_wlan_fmac_dbgfs_deinit(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx);
-int wifi_nrf_wlan_fmac_dbgfs_stats_init(struct dentry *root,
-					struct wifi_nrf_ctx_lnx *rpu_ctx_lnx);
-void wifi_nrf_wlan_fmac_dbgfs_stats_deinit(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx);
-int wifi_nrf_wlan_fmac_dbgfs_ver_init(struct dentry *root,
-				      struct wifi_nrf_ctx_lnx *rpu_ctx_lnx);
-void wifi_nrf_wlan_fmac_dbgfs_ver_deinit(void);
-int wifi_nrf_wlan_fmac_dbgfs_twt_init(struct dentry *root,
-				      struct wifi_nrf_ctx_lnx *rpu_ctx_lnx);
-void wifi_nrf_wlan_fmac_dbgfs_twt_deinit(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx);
-int wifi_nrf_wlan_fmac_dbgfs_conf_init(struct dentry *root,
-				       struct wifi_nrf_ctx_lnx *rpu_ctx_lnx);
-void wifi_nrf_wlan_fmac_dbgfs_conf_deinit(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx);
+int nrf_wifi_dbgfs_init(void);
+void nrf_wifi_dbgfs_deinit(void);
+int nrf_wifi_wlan_fmac_dbgfs_init(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx);
+void nrf_wifi_wlan_fmac_dbgfs_deinit(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx);
+int nrf_wifi_wlan_fmac_dbgfs_stats_init(struct dentry *root,
+					struct nrf_wifi_ctx_lnx *rpu_ctx_lnx);
+void nrf_wifi_wlan_fmac_dbgfs_stats_deinit(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx);
+int nrf_wifi_wlan_fmac_dbgfs_ver_init(struct dentry *root,
+				      struct nrf_wifi_ctx_lnx *rpu_ctx_lnx);
+void nrf_wifi_wlan_fmac_dbgfs_ver_deinit(void);
+int nrf_wifi_wlan_fmac_dbgfs_twt_init(struct dentry *root,
+				      struct nrf_wifi_ctx_lnx *rpu_ctx_lnx);
+void nrf_wifi_wlan_fmac_dbgfs_twt_deinit(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx);
+int nrf_wifi_wlan_fmac_dbgfs_conf_init(struct dentry *root,
+				       struct nrf_wifi_ctx_lnx *rpu_ctx_lnx);
+void nrf_wifi_wlan_fmac_dbgfs_conf_deinit(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx);
 #endif /* __DBGFS_IF_H__ */

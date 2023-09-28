@@ -62,8 +62,8 @@ struct shim_bus_spi_priv {
 struct shim_bus_spi_dev_ctx {
 	struct shim_bus_spi_priv *lnx_spi_priv;
 	void *osal_spi_dev_ctx;
-	struct wifi_nrf_ctx_lnx *lnx_rpu_ctx;
-	struct wifi_nrf_osal_host_map host_map;
+	struct nrf_wifi_ctx_lnx *lnx_rpu_ctx;
+	struct nrf_wifi_osal_host_map host_map;
 	char *dev_name;
 	bool is_msi;
 };

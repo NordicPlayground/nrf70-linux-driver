@@ -21,7 +21,7 @@
 
 int twt_setup_event;
 
-void wifi_nrf_wlan_fmac_twt_init(struct rpu_twt_params *twt_params)
+void nrf_wifi_wlan_fmac_twt_init(struct rpu_twt_params *twt_params)
 {
 	memset(twt_params, 0, sizeof(*twt_params));
 	twt_params->teardown_reason = -1;
@@ -54,16 +54,16 @@ static __always_inline unsigned char param_get_match(unsigned char *buf,
 		return 0;
 }
 
-static ssize_t wifi_nrf_wlan_twt_write(struct file *file,
+static ssize_t nrf_wifi_wlan_twt_write(struct file *file,
 				       const char __user *in_buf, size_t count,
 				       loff_t *ppos)
 {
-	enum wifi_nrf_status status = WIFI_NRF_STATUS_FAIL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_dev_ctx *fmac_ctx = NULL;
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_dev_ctx *fmac_ctx = NULL;
 	struct nrf_wifi_umac_cmd_config_twt *twt_setup_cmd = NULL;
 	struct nrf_wifi_umac_cmd_teardown_twt *twt_teardown_cmd = NULL;
-	const struct wifi_nrf_osal_ops *osal_ops = NULL;
+	const struct nrf_wifi_osal_ops *osal_ops = NULL;
 	char *conf_buf = NULL;
 	char err_str[MAX_ERR_STR_SIZE];
 	size_t ret_val = count;
@@ -72,8 +72,8 @@ static ssize_t wifi_nrf_wlan_twt_write(struct file *file,
 	int twt_retry_attempt = 0;
 	char *tok_s = NULL;
 
-	rpu_ctx_lnx = (struct wifi_nrf_ctx_lnx *)file->f_inode->i_private;
-	fmac_ctx = (struct wifi_nrf_fmac_dev_ctx *)(rpu_ctx_lnx->rpu_ctx);
+	rpu_ctx_lnx = (struct nrf_wifi_ctx_lnx *)file->f_inode->i_private;
+	fmac_ctx = (struct nrf_wifi_fmac_dev_ctx *)(rpu_ctx_lnx->rpu_ctx);
 	osal_ops = fmac_ctx->fpriv->opriv->ops;
 
 	if (count >= MAX_CONF_BUF_SIZE) {
@@ -213,7 +213,7 @@ retry_twt:
 		status = umac_cmd_cfg(fmac_ctx, twt_setup_cmd,
 				      sizeof(*twt_setup_cmd));
 
-		if (status != WIFI_NRF_STATUS_SUCCESS) {
+		if (status != NRF_WIFI_STATUS_SUCCESS) {
 			pr_err("TWT SETUP_CMD failed\n");
 			goto out;
 		}
@@ -281,38 +281,38 @@ out:
 	return ret_val;
 }
 
-static int wifi_nrf_wlan_fmac_dbgfs_twt_show(struct seq_file *m, void *v)
+static int nrf_wifi_wlan_fmac_dbgfs_twt_show(struct seq_file *m, void *v)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
 
-	rpu_ctx_lnx = (struct wifi_nrf_ctx_lnx *)m->private;
+	rpu_ctx_lnx = (struct nrf_wifi_ctx_lnx *)m->private;
 
 	return 0;
 }
 
-static int wifi_nrf_wlan_twt_open(struct inode *inode, struct file *file)
+static int nrf_wifi_wlan_twt_open(struct inode *inode, struct file *file)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx =
-		(struct wifi_nrf_ctx_lnx *)inode->i_private;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx =
+		(struct nrf_wifi_ctx_lnx *)inode->i_private;
 
-	return single_open(file, wifi_nrf_wlan_fmac_dbgfs_twt_show,
+	return single_open(file, nrf_wifi_wlan_fmac_dbgfs_twt_show,
 			   rpu_ctx_lnx);
 }
 
 static const struct file_operations fops_wlan_twt = {
-	.open = wifi_nrf_wlan_twt_open,
+	.open = nrf_wifi_wlan_twt_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
-	.write = wifi_nrf_wlan_twt_write,
+	.write = nrf_wifi_wlan_twt_write,
 	.release = single_release
 };
 
-int wifi_nrf_wlan_fmac_dbgfs_twt_init(struct dentry *root,
-				      struct wifi_nrf_ctx_lnx *rpu_ctx_lnx)
+int nrf_wifi_wlan_fmac_dbgfs_twt_init(struct dentry *root,
+				      struct nrf_wifi_ctx_lnx *rpu_ctx_lnx)
 {
 	int ret = 0;
 
-	wifi_nrf_wlan_fmac_twt_init(&rpu_ctx_lnx->twt_params);
+	nrf_wifi_wlan_fmac_twt_init(&rpu_ctx_lnx->twt_params);
 
 	if ((!root) || (!rpu_ctx_lnx)) {
 		pr_err("%s: Invalid parameters\n", __func__);
@@ -320,10 +320,10 @@ int wifi_nrf_wlan_fmac_dbgfs_twt_init(struct dentry *root,
 		goto fail;
 	}
 
-	rpu_ctx_lnx->dbgfs_wifi_nrf_twt_root = debugfs_create_file(
+	rpu_ctx_lnx->dbgfs_nrf_wifi_twt_root = debugfs_create_file(
 		"twt", 0644, root, rpu_ctx_lnx, &fops_wlan_twt);
 
-	if (!rpu_ctx_lnx->dbgfs_wifi_nrf_twt_root) {
+	if (!rpu_ctx_lnx->dbgfs_nrf_wifi_twt_root) {
 		pr_err("%s: Failed to create debugfs entry\n", __func__);
 		ret = -ENOMEM;
 		goto fail;
@@ -332,15 +332,15 @@ int wifi_nrf_wlan_fmac_dbgfs_twt_init(struct dentry *root,
 	goto out;
 
 fail:
-	wifi_nrf_wlan_fmac_dbgfs_twt_deinit(rpu_ctx_lnx);
+	nrf_wifi_wlan_fmac_dbgfs_twt_deinit(rpu_ctx_lnx);
 out:
 	return ret;
 }
 
-void wifi_nrf_wlan_fmac_dbgfs_twt_deinit(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx)
+void nrf_wifi_wlan_fmac_dbgfs_twt_deinit(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx)
 {
-	if (rpu_ctx_lnx->dbgfs_wifi_nrf_twt_root)
-		debugfs_remove(rpu_ctx_lnx->dbgfs_wifi_nrf_twt_root);
+	if (rpu_ctx_lnx->dbgfs_nrf_wifi_twt_root)
+		debugfs_remove(rpu_ctx_lnx->dbgfs_nrf_wifi_twt_root);
 
-	rpu_ctx_lnx->dbgfs_wifi_nrf_twt_root = NULL;
+	rpu_ctx_lnx->dbgfs_nrf_wifi_twt_root = NULL;
 }

@@ -20,30 +20,30 @@
 
 static void nrf_cfg80211_data_tx_routine(struct work_struct *w)
 {
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx =
-		container_of(w, struct wifi_nrf_fmac_vif_ctx_lnx, ws_data_tx);
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_dev_ctx *fmac_dev_ctx = NULL;
-	enum wifi_nrf_status status = WIFI_NRF_STATUS_FAIL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx =
+		container_of(w, struct nrf_wifi_fmac_vif_ctx_lnx, ws_data_tx);
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	void *netbuf = NULL;
 
 	rpu_ctx_lnx = vif_ctx_lnx->rpu_ctx;
 	fmac_dev_ctx = rpu_ctx_lnx->rpu_ctx;
 
-	netbuf = wifi_nrf_utils_q_dequeue(fmac_dev_ctx->fpriv->opriv,
+	netbuf = nrf_wifi_utils_q_dequeue(fmac_dev_ctx->fpriv->opriv,
 					  vif_ctx_lnx->data_txq);
 	if (netbuf == NULL) {
 		pr_err("%s: fail to get tx data from queue\n", __func__);
 		return;
 	}
 
-	status = wifi_nrf_fmac_start_xmit(rpu_ctx_lnx->rpu_ctx,
+	status = nrf_wifi_fmac_start_xmit(rpu_ctx_lnx->rpu_ctx,
 					  vif_ctx_lnx->if_idx, netbuf);
-	if (status != WIFI_NRF_STATUS_SUCCESS) {
-		pr_err("%s: wifi_nrf_fmac_start_xmit failed\n", __func__);
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		pr_err("%s: nrf_wifi_fmac_start_xmit failed\n", __func__);
 	}
 
-	if (wifi_nrf_utils_q_len(fmac_dev_ctx->fpriv->opriv,
+	if (nrf_wifi_utils_q_len(fmac_dev_ctx->fpriv->opriv,
 				 vif_ctx_lnx->data_txq) > 0) {
 		schedule_work(&vif_ctx_lnx->ws_data_tx);
 	}
@@ -51,11 +51,11 @@ static void nrf_cfg80211_data_tx_routine(struct work_struct *w)
 
 static void nrf_cfg80211_queue_monitor_routine(struct work_struct *w)
 {
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = container_of(
-		w, struct wifi_nrf_fmac_vif_ctx_lnx, ws_queue_monitor);
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_dev_ctx *fmac_dev_ctx = NULL;
-	struct wifi_nrf_fmac_dev_ctx_def *def_dev_ctx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = container_of(
+		w, struct nrf_wifi_fmac_vif_ctx_lnx, ws_queue_monitor);
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
+	struct nrf_wifi_fmac_dev_ctx_def *def_dev_ctx = NULL;
 	struct rpu_host_stats *host_stats = NULL;
 
 	rpu_ctx_lnx = vif_ctx_lnx->rpu_ctx;
@@ -73,13 +73,13 @@ static void nrf_cfg80211_queue_monitor_routine(struct work_struct *w)
 	}
 }
 
-netdev_tx_t wifi_nrf_netdev_start_xmit(struct sk_buff *skb,
+netdev_tx_t nrf_wifi_netdev_start_xmit(struct sk_buff *skb,
 				       struct net_device *netdev)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_dev_ctx *fmac_dev_ctx = NULL;
-	struct wifi_nrf_fmac_dev_ctx_def *def_dev_ctx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
+	struct nrf_wifi_fmac_dev_ctx_def *def_dev_ctx = NULL;
 	struct rpu_host_stats *host_stats = NULL;
 	int status = -1;
 	int ret = NETDEV_TX_OK;
@@ -105,11 +105,11 @@ netdev_tx_t wifi_nrf_netdev_start_xmit(struct sk_buff *skb,
 		schedule_work(&vif_ctx_lnx->ws_queue_monitor);
 	}
 
-	status = wifi_nrf_utils_q_enqueue(fmac_dev_ctx->fpriv->opriv,
+	status = nrf_wifi_utils_q_enqueue(fmac_dev_ctx->fpriv->opriv,
 					  vif_ctx_lnx->data_txq, skb);
 
-	if (status != WIFI_NRF_STATUS_SUCCESS) {
-		pr_err("%s: wifi_nrf_utils_q_enqueue failed\n", __func__);
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		pr_err("%s: nrf_wifi_utils_q_enqueue failed\n", __func__);
 		ret = NETDEV_TX_BUSY;
 		return ret;
 	}
@@ -122,10 +122,10 @@ out:
 }
 #endif
 
-int wifi_nrf_netdev_open(struct net_device *netdev)
+int nrf_wifi_netdev_open(struct net_device *netdev)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_chg_vif_state_info *vif_info = NULL;
 	int status = -1;
 
@@ -143,11 +143,11 @@ int wifi_nrf_netdev_open(struct net_device *netdev)
 
 	memcpy(vif_info->ifacename, "wlan0", strlen("wlan0"));
 
-	status = wifi_nrf_fmac_chg_vif_state(rpu_ctx_lnx->rpu_ctx,
+	status = nrf_wifi_fmac_chg_vif_state(rpu_ctx_lnx->rpu_ctx,
 					     vif_ctx_lnx->if_idx, vif_info);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_chg_vif_state failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_chg_vif_state failed\n", __func__);
 		goto out;
 	}
 
@@ -158,10 +158,10 @@ out:
 	return status;
 }
 
-int wifi_nrf_netdev_close(struct net_device *netdev)
+int nrf_wifi_netdev_close(struct net_device *netdev)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_chg_vif_state_info *vif_info = NULL;
 	int status = -1;
 
@@ -179,11 +179,11 @@ int wifi_nrf_netdev_close(struct net_device *netdev)
 
 	memcpy(vif_info->ifacename, "wlan0", strlen("wlan0"));
 
-	status = wifi_nrf_fmac_chg_vif_state(rpu_ctx_lnx->rpu_ctx,
+	status = nrf_wifi_fmac_chg_vif_state(rpu_ctx_lnx->rpu_ctx,
 					     vif_ctx_lnx->if_idx, vif_info);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_chg_vif_state failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_chg_vif_state failed\n", __func__);
 		goto out;
 	}
 	flush_work(&vif_ctx_lnx->ws_data_tx);
@@ -197,10 +197,10 @@ out:
 	return status;
 }
 
-void wifi_nrf_netdev_set_multicast_list(struct net_device *netdev)
+void nrf_wifi_netdev_set_multicast_list(struct net_device *netdev)
 {
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_mcast_cfg *mcast_info = NULL;
 	int status = -1;
 	struct netdev_hw_addr *ha = NULL;
@@ -225,11 +225,11 @@ void wifi_nrf_netdev_set_multicast_list(struct net_device *netdev)
 		       ha->addr, NRF_WIFI_ETH_ADDR_LEN);
 		indx++;
 	}
-	status = wifi_nrf_fmac_set_mcast_addr(rpu_ctx_lnx->rpu_ctx,
+	status = nrf_wifi_fmac_set_mcast_addr(rpu_ctx_lnx->rpu_ctx,
 					      vif_ctx_lnx->if_idx, mcast_info);
 
-	if (status == WIFI_NRF_STATUS_FAIL) {
-		pr_err("%s: wifi_nrf_fmac_chg_vif_state failed\n", __func__);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_chg_vif_state failed\n", __func__);
 		goto out;
 	}
 
@@ -238,9 +238,9 @@ out:
 		kfree(mcast_info);
 }
 
-void wifi_nrf_netdev_frame_rx_callbk_fn(void *os_vif_ctx, void *frm)
+void nrf_wifi_netdev_frame_rx_callbk_fn(void *os_vif_ctx, void *frm)
 {
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct sk_buff *skb = frm;
 	struct net_device *netdev = NULL;
 
@@ -254,11 +254,11 @@ void wifi_nrf_netdev_frame_rx_callbk_fn(void *os_vif_ctx, void *frm)
 	netif_rx(skb);
 }
 
-enum wifi_nrf_status wifi_nrf_netdev_if_state_chg_callbk_fn(
-	void *vif_ctx, enum wifi_nrf_fmac_if_carr_state if_state)
+enum nrf_wifi_status nrf_wifi_netdev_if_state_chg_callbk_fn(
+	void *vif_ctx, enum nrf_wifi_fmac_if_carr_state if_state)
 {
-	enum wifi_nrf_status status = WIFI_NRF_STATUS_FAIL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct net_device *netdev = NULL;
 
 	if (!vif_ctx) {
@@ -266,44 +266,44 @@ enum wifi_nrf_status wifi_nrf_netdev_if_state_chg_callbk_fn(
 		goto out;
 	}
 
-	vif_ctx_lnx = (struct wifi_nrf_fmac_vif_ctx_lnx *)vif_ctx;
+	vif_ctx_lnx = (struct nrf_wifi_fmac_vif_ctx_lnx *)vif_ctx;
 	netdev = vif_ctx_lnx->netdev;
 
-	if (if_state == WIFI_NRF_FMAC_IF_CARR_STATE_ON)
+	if (if_state == NRF_WIFI_FMAC_IF_CARR_STATE_ON)
 		netif_carrier_on(netdev);
-	else if (if_state == WIFI_NRF_FMAC_IF_CARR_STATE_OFF)
+	else if (if_state == NRF_WIFI_FMAC_IF_CARR_STATE_OFF)
 		netif_carrier_off(netdev);
 	else {
 		pr_err("%s: Invalid interface state %d\n", __func__, if_state);
 		goto out;
 	}
 
-	status = WIFI_NRF_STATUS_SUCCESS;
+	status = NRF_WIFI_STATUS_SUCCESS;
 out:
 	return status;
 }
 
-const struct net_device_ops wifi_nrf_netdev_ops = {
-	.ndo_open = wifi_nrf_netdev_open,
-	.ndo_stop = wifi_nrf_netdev_close,
+const struct net_device_ops nrf_wifi_netdev_ops = {
+	.ndo_open = nrf_wifi_netdev_open,
+	.ndo_stop = nrf_wifi_netdev_close,
 #ifdef CONFIG_NRF700X_DATA_TX
-	.ndo_start_xmit = wifi_nrf_netdev_start_xmit,
+	.ndo_start_xmit = nrf_wifi_netdev_start_xmit,
 #endif /* CONFIG_NRF700X_DATA_TX */
 };
 
-struct wifi_nrf_fmac_vif_ctx_lnx *
-wifi_nrf_netdev_add_vif(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx,
+struct nrf_wifi_fmac_vif_ctx_lnx *
+nrf_wifi_netdev_add_vif(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx,
 			const char *if_name, struct wireless_dev *wdev,
 			char *mac_addr)
 {
 	struct net_device *netdev = NULL;
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_dev_ctx *fmac_dev_ctx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
 	int ret = 0;
 
 	ASSERT_RTNL();
 
-	netdev = alloc_etherdev(sizeof(struct wifi_nrf_fmac_vif_ctx_lnx));
+	netdev = alloc_etherdev(sizeof(struct nrf_wifi_fmac_vif_ctx_lnx));
 
 	if (!netdev) {
 		pr_err("%s: Unable to allocate memory for a new netdev\n",
@@ -316,7 +316,7 @@ wifi_nrf_netdev_add_vif(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx,
 	vif_ctx_lnx->netdev = netdev;
 	fmac_dev_ctx = rpu_ctx_lnx->rpu_ctx;
 
-	netdev->netdev_ops = &wifi_nrf_netdev_ops;
+	netdev->netdev_ops = &nrf_wifi_netdev_ops;
 
 	strncpy(netdev->name, if_name, sizeof(netdev->name) - 1);
 
@@ -329,7 +329,7 @@ wifi_nrf_netdev_add_vif(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx,
 	netdev->priv_destructor = free_netdev;
 #ifdef CONFIG_NRF700X_DATA_TX
 	vif_ctx_lnx->data_txq =
-		wifi_nrf_utils_q_alloc(fmac_dev_ctx->fpriv->opriv);
+		nrf_wifi_utils_q_alloc(fmac_dev_ctx->fpriv->opriv);
 	if (vif_ctx_lnx->data_txq == NULL) {
 		goto err_reg_netdev;
 	}
@@ -355,17 +355,17 @@ out:
 	return vif_ctx_lnx;
 }
 
-void wifi_nrf_netdev_del_vif(struct net_device *netdev)
+void nrf_wifi_netdev_del_vif(struct net_device *netdev)
 {
-	struct wifi_nrf_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
-	struct wifi_nrf_ctx_lnx *rpu_ctx_lnx = NULL;
-	struct wifi_nrf_fmac_dev_ctx *fmac_dev_ctx = NULL;
+	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
+	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
 
 	vif_ctx_lnx = netdev_priv(netdev);
 	rpu_ctx_lnx = vif_ctx_lnx->rpu_ctx;
 	fmac_dev_ctx = rpu_ctx_lnx->rpu_ctx;
 
-	wifi_nrf_utils_q_free(fmac_dev_ctx->fpriv->opriv,
+	nrf_wifi_utils_q_free(fmac_dev_ctx->fpriv->opriv,
 			      vif_ctx_lnx->data_txq);
 
 	unregister_netdevice(netdev);

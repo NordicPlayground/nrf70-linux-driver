@@ -47,9 +47,9 @@ struct rpu_twt_params {
 	int teardown_event_cnt;
 };
 
-struct wifi_nrf_ctx_lnx {
+struct nrf_wifi_ctx_lnx {
 	void *rpu_ctx;
-	struct wifi_nrf_fmac_vif_ctx_lnx *def_vif_ctx;
+	struct nrf_wifi_fmac_vif_ctx_lnx *def_vif_ctx;
 	struct wiphy *wiphy;
 
 	struct dentry *dbgfs_rpu_root;
@@ -58,24 +58,24 @@ struct wifi_nrf_ctx_lnx {
 	struct dentry *dbgfs_wlan_conf_root;
 	struct rpu_conf_params conf_params;
 #ifdef DEBUG_MODE_SUPPORT
-	struct wifi_nrf_umac_set_beacon_info info;
+	struct nrf_wifi_umac_set_beacon_info info;
 	struct rpu_btcoex btcoex;
 #endif
 	struct list_head cookie_list;
-	struct dentry *dbgfs_wifi_nrf_twt_root;
+	struct dentry *dbgfs_nrf_wifi_twt_root;
 	struct rpu_twt_params twt_params;
 };
 
-struct wifi_nrf_drv_priv_lnx {
+struct nrf_wifi_drv_priv_lnx {
 	struct dentry *dbgfs_root;
 	struct dentry *dbgfs_ver_root;
-	struct wifi_nrf_fmac_priv *fmac_priv;
+	struct nrf_wifi_fmac_priv *fmac_priv;
 	bool drv_init;
 };
 
-struct wifi_nrf_ctx_lnx *wifi_nrf_fmac_dev_add_lnx(void);
-void wifi_nrf_fmac_dev_rem_lnx(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx);
-enum wifi_nrf_status
-wifi_nrf_fmac_dev_init_lnx(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx);
-void wifi_nrf_fmac_dev_deinit_lnx(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx);
+struct nrf_wifi_ctx_lnx *nrf_wifi_fmac_dev_add_lnx(void);
+void nrf_wifi_fmac_dev_rem_lnx(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx);
+enum nrf_wifi_status
+nrf_wifi_fmac_dev_init_lnx(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx);
+void nrf_wifi_fmac_dev_deinit_lnx(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx);
 #endif /* __MAIN_H__ */
