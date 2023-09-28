@@ -42,6 +42,12 @@ int wifi_nrf_wlan_fmac_dbgfs_init(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx)
 	if (!rpu_ctx_lnx->dbgfs_wlan_root)
 		goto out;
 
+	status = wifi_nrf_wlan_fmac_dbgfs_conf_init(
+		rpu_ctx_lnx->dbgfs_wlan_root, rpu_ctx_lnx);
+
+	if (status != WIFI_NRF_STATUS_SUCCESS)
+		goto out;
+
 	status = wifi_nrf_wlan_fmac_dbgfs_twt_init(rpu_ctx_lnx->dbgfs_wlan_root,
 						   rpu_ctx_lnx);
 

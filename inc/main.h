@@ -55,6 +55,8 @@ struct wifi_nrf_ctx_lnx {
 	struct dentry *dbgfs_rpu_root;
 	struct dentry *dbgfs_wlan_root;
 	struct dentry *dbgfs_wlan_stats_root;
+	struct dentry *dbgfs_wlan_conf_root;
+	struct rpu_conf_params conf_params;
 #ifdef DEBUG_MODE_SUPPORT
 	struct wifi_nrf_umac_set_beacon_info info;
 	struct rpu_btcoex btcoex;

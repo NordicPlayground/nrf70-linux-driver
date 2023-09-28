@@ -24,5 +24,7 @@ void wifi_nrf_wlan_fmac_dbgfs_ver_deinit(void);
 int wifi_nrf_wlan_fmac_dbgfs_twt_init(struct dentry *root,
 				      struct wifi_nrf_ctx_lnx *rpu_ctx_lnx);
 void wifi_nrf_wlan_fmac_dbgfs_twt_deinit(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx);
-
+int wifi_nrf_wlan_fmac_dbgfs_conf_init(struct dentry *root,
+				       struct wifi_nrf_ctx_lnx *rpu_ctx_lnx);
+void wifi_nrf_wlan_fmac_dbgfs_conf_deinit(struct wifi_nrf_ctx_lnx *rpu_ctx_lnx);
 #endif /* __DBGFS_IF_H__ */
