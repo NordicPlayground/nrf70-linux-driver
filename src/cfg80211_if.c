@@ -855,6 +855,10 @@ int nrf_wifi_cfg80211_scan(struct wiphy *wiphy,
 		pr_err("%s: Unable to allocate memory\n", __func__);
 		goto out;
 	}
+
+	if (!req->n_ssids)
+		scan_info->scan_params.passive_scan = 1;
+
 	scan_info->scan_reason = SCAN_DISPLAY;
 	status = nrf_wifi_fmac_scan(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx,
 				    scan_info);
