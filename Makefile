@@ -91,6 +91,7 @@ OBJS += $(LINUX_SHIM_DIR)/src/wiphy.o
 OBJS += $(LINUX_SHIM_DIR)/src/debugfs/wlan_fmac_stats.o
 OBJS += $(LINUX_SHIM_DIR)/src/debugfs/wlan_fmac_ver.o
 OBJS += $(LINUX_SHIM_DIR)/src/debugfs/wlan_fmac_twt.o
+OBJS += $(LINUX_SHIM_DIR)/src/debugfs/wlan_fmac_conf.o
 
 OBJS += $(LINUX_SHIM_DIR)/src/spi/src/rpu_hw_if.o
 OBJS += $(LINUX_SHIM_DIR)/src/spi/src/device.o
