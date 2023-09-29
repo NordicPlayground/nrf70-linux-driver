@@ -188,11 +188,20 @@ Ensure that the `nrf_wifi_fmac_sta.ko` and `dts/nrf70_rpi_interposer.dtbo` files
 The procedure to collect sniffer logs is outside the scope of this document as it depends heavily on the environment and the sniffer used.
 # Known issues
 
-1. Sometimes below warning is observed in the `dmesg`
+1. Target Wake Time (TWT) feature is not supported yet.
+   
+2. Maximum UDP/TCP throughputs achieved presently are in the range of 2 - 3 Mbps.
+   
+3. Intermittent issues when running UDP/TCP throughputs:
+
+   - Firmware lockup (on the nRF70 series device)
+   - Linux kernel crash
+   
+4. Sometimes below warning is observed in the `dmesg`
 
    - `NOHZ tick-stop error: Non-RCU local softirq work is pending, handler #08!!!`
 
-2. Sometimes during boot couple of commands timeout and below warning is observed in the `dmesg`, once the driver is fully initialized the commands work as expected, so, these warnings can be ignored.
+5. Sometimes during boot couple of commands timeout and below warning is observed in the `dmesg`, once the driver is fully initialized the commands work as expected, so, these warnings can be ignored.
 
    - `Timed out waiting for response from RPU (Get Channel)`
    - `Timed out waiting for response from RPU (Set TX power)`
