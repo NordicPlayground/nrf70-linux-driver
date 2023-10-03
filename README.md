@@ -44,10 +44,16 @@ The following dependencies are required to build the driver, install them using 
 
 # Build and run the driver
 ## Build the driver
-1. Clone the repository using `west`:
+1. To get the latest version of the driver clone the repository using `west`:
     ```bash
     west init -m git@github.com:NordicPlayground/nrf70-linux-driver.git --mr main
    ```
+
+   If you have downloaded a released version of the driver in a zipped format, do the following after unzipping the folder:
+   ```bash
+    west init -l .
+   ```
+
 2. Update west projects
     ```bash
     west update
