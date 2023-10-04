@@ -24,8 +24,8 @@ The driver can be used with any Linux based products, but it is tested on a Rasp
 The following hardware is required to run the driver:
  - Raspberry Pi4B
  - nRF7002 or nRF7001 Evaluation Kit (without Host MCU)
- - An Interposer board to connect the nRF70 series Wi-Fi SoC to the Raspberry Pi4B header
-   Note: The Interposer board is not included in the nRF7002 or nRF7001 Evaluation Kit and must be purchased separately.
+ - An Interposer board to connect the nRF70 series Wi-Fi SoC to the Raspberry Pi4B header.
+    >Note: The Interposer board is not included in the nRF7002 or nRF7001 Evaluation Kit and will need to be manufactured separately. The reference board design files for the same can be found [`here`](https://github.com/NordicPlayground/nrf70-linux-driver/tree/main/boards/RPi4B_interposer).
  - A microSD card (at least 32GB) with Ubuntu 22.04 LTS installed
 
 ### Software
