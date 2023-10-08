@@ -23,6 +23,7 @@
 #include <linux/bug.h>
 #include <linux/irq.h>
 #include <net/cfg80211.h>
+#include <linux/math64.h>
 
 #include "osal_api.h"
 #include "osal_ops.h"
@@ -528,12 +529,13 @@ static int shim_udelay(int usecs)
 
 static unsigned long shim_time_get_curr_us(void)
 {
-	return ktime_get_real_ns() / 1000;
+	return div_u64(ktime_get_real_ns(), NSEC_PER_USEC);
 }
 
 static unsigned int shim_time_elapsed_us(unsigned long start_time_us)
 {
-	return (unsigned int)(ktime_get_real_ns() / 1000 - start_time_us);
+	return (unsigned int)(div_u64(ktime_get_real_ns(), NSEC_PER_USEC) -
+			      start_time_us);
 }
 
 #ifdef CONFIG_NRF_WIFI_LOW_POWER
