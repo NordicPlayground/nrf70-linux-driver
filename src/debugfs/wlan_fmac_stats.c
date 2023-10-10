@@ -509,8 +509,13 @@ static int nrf_wifi_wlan_fmac_dbgfs_stats_show(struct seq_file *m, void *v)
 #endif /* DEBUG_MODE_SUPPORT */
 	int op_mode = RPU_OP_MODE_MAX;
 	struct rpu_op_stats *stats = NULL;
-
+#ifdef CONFIG_NRF700X_RADIO_TEST
+	unsigned int i = 0;
+#endif
 	rpu_ctx_lnx = (struct nrf_wifi_ctx_lnx *)m->private;
+#ifdef CONFIG_NRF700X_RADIO_TEST
+	op_mode = rpu_ctx_lnx->conf_params.op_mode,
+#endif
 
 	stats = kzalloc(sizeof(*stats), GFP_KERNEL);
 
@@ -544,8 +549,8 @@ static int nrf_wifi_wlan_fmac_dbgfs_stats_show(struct seq_file *m, void *v)
 	    (stats_type == RPU_STATS_TYPE_LMAC))
 #endif /* DEBUG_MODE_SUPPORT */
 		nrf_wifi_wlan_fmac_dbgfs_stats_show_lmac(m, &stats->fw.lmac);
-#endif /* !CONFIG_NRF700X_RADIO_TEST */
 
+#endif
 #ifdef DEBUG_MODE_SUPPORT
 	if ((stats_type == RPU_STATS_TYPE_ALL) ||
 	    (stats_type == RPU_STATS_TYPE_PHY))
@@ -555,6 +560,7 @@ static int nrf_wifi_wlan_fmac_dbgfs_stats_show(struct seq_file *m, void *v)
 							op_mode,
 #endif /* CONFIG_NRF700X_RADIO_TEST */
 							&stats->fw.phy);
+#ifndef CONFIG_NRF700X_RADIO_TEST
 	switch (rpu_ctx_lnx->twt_params.status) {
 	case 0:
 		seq_printf(m, "sta_status = DISCONNECTED\n");
@@ -644,7 +650,23 @@ static int nrf_wifi_wlan_fmac_dbgfs_stats_show(struct seq_file *m, void *v)
 	}
 	seq_printf(m, "teardown_event_cnt = %d\n",
 		   rpu_ctx_lnx->twt_params.teardown_event_cnt);
+#endif
 
+#ifdef CONFIG_NRF700X_RADIO_TEST
+	if (rpu_ctx_lnx->rx_cap_buf) {
+		seq_puts(m, "\n************* RX capture data ***********\n");
+
+		for (i = 0; i < (rpu_ctx_lnx->conf_params.capture_length);
+		     i++) {
+			seq_printf(m, "%02X%02X%02X\n",
+				   rpu_ctx_lnx->rx_cap_buf[i * 3 + 2],
+				   rpu_ctx_lnx->rx_cap_buf[i * 3 + 1],
+				   rpu_ctx_lnx->rx_cap_buf[i * 3 + 0]);
+		}
+		kfree(rpu_ctx_lnx->rx_cap_buf);
+		rpu_ctx_lnx->rx_cap_buf = NULL;
+	}
+#endif
 out:
 	return status;
 }
