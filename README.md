@@ -15,6 +15,7 @@ The driver supports the following features:
  - Dual-band (2.4 GHz and 5 GHz) operation (Depending on the nRF70 series Wi-Fi SoC variant)
  - WPA2-PSK security
  - WPA3-SAE security
+ - Wi-Fi RADIO-TEST mode
 
 # Getting started
 The driver can be used with any Linux based products, but it is tested on a Raspberry Pi4B running the Ubuntu 22.04 LTS operating system. Support for other Linux distributions is not part of the scope of this project.
@@ -69,7 +70,7 @@ nRF70 driver has feature flags to enable/disable certain features. These flags c
 
 | Flag | Description | Default |
 | --- | --- | --- |
-| `MODE` | Supported modes are `STA` only | `STA` |
+| `MODE` | Supported modes are `STA` and `RADIO-TEST` | `STA` |
 | `LOW_POWER` | Enable low power mode | `0` |
 
 #### Examples
@@ -192,6 +193,83 @@ Ensure that the `nrf_wifi_fmac_sta.ko` and `dts/nrf70_rpi_interposer.dtbo` files
 ## Collect Sniffer logs
 
 The procedure to collect sniffer logs is outside the scope of this document as it depends heavily on the environment and the sniffer used.
+
+## Driver feature configuration with RADIO-TEST mode with low power enabled
+
+RADIO-TEST mode is used to characterize TX/RX functionalities of RPU with different test sets.
+
+1. To build the driver with RADIO-TEST mode
+   ```bash
+    make clean all MODE=RADIO_TEST LOW_POWER=1
+    ```
+   Ensure that the `rf_wifi_fmac_radio_test.ko` and `dts/nrf70_rpi_interposer.dtbo` files are generated.
+2. Load the driver
+    ```bash
+    sudo insmod nrf_wifi_fmac_radio_test.ko
+    ```
+3. The commands used for radio test can be found [`here`](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/nrf/samples/wifi/radio_test/radio_test_subcommands).
+4. To set different test parameters `debugfs` is used
+   
+   > For EK to transmit 10000 packets (TX transmit count) with the required modulation, TX power and channel
+     (e.g. 11g, 54 Mbps, channel 11):
+   ```bash
+   #echo init=11 > /sys/kernel/debug/nrf/wifi/conf
+   #echo tx_pkt_tput_mode=0 > /sys/kernel/debug/nrf/wifi/conf
+   #echo tx_pkt_rate=54 > /sys/kernel/debug/nrf/wifi/conf
+   #echo tx_pkt_len=1024 > /sys/kernel/debug/nrf/wifi/conf
+   #echo tx_pkt_gap=100 > /sys/kernel/debug/nrf/wifi/conf
+   #echo tx_pkt_num=10000 > /sys/kernel/debug/nrf/wifi/conf
+   #echo tx=1 > /sys/kernel/debug/nrf/wifi/conf
+   ```
+   Once set check the configuration settings in `/sys/kernel/debug/nrf/wifi/conf`. Typically the configuration will be as below
+   ```bash
+   root@ubuntu:~# cat /sys/kernel/debug/nrf/wifi/conf
+   ************* Configured Parameters ***********
+   phy_calib_rxdc = 1
+   phy_calib_txdc = 1
+   phy_calib_txpow = 0
+   phy_calib_rxiq = 1
+   phy_calib_txiq = 1
+   he_ltf = 2
+   he_gi = 2
+   tx_pkt_tput_mode = 0
+   tx_pkt_sgi = 0
+   tx_pkt_preamble = 1
+   tx_pkt_mcs = 0
+   tx_pkt_rate = 54
+   tx_pkt_gap = 100
+   tx_pkt_num = 10000
+   tx_pkt_len = 1024
+   tx_power = 30
+   ru_tone = 26
+   ru_index = 1
+   rx_capture_length = 0
+   rx_lna_gain = 0
+   rx_bb_gain = 0
+   tx_tone_freq = 0
+   xo_val = 38
+   init = 11
+   tx = 0
+   rx = 0
+   tx_pkt_cw = 15
+   reg_domain = 00
+   bypass_reg_domain = 0
+   ```
+6. To view the test results
+   ```bash
+   #cat /sys/kernel/debug/nrf/wifi/stats
+   ```
+   Typically the results will be as below after running the test.
+   
+   ```bash
+   root@ubuntu:~# cat /sys/kernel/debug/nrf/wifi/stats
+   ************* PHY STATS ***********
+   rssi_avg = -64 dBm
+   ofdm_crc32_pass_cnt=5140
+   ofdm_crc32_fail_cnt=3952
+   dsss_crc32_pass_cnt=31786
+   dsss_crc32_fail_cnt=2265
+   ```
 # Known issues
 
 1. Target Wake Time (TWT) feature is not supported yet.

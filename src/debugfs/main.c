@@ -48,12 +48,13 @@ int nrf_wifi_wlan_fmac_dbgfs_init(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx)
 	if (status != NRF_WIFI_STATUS_SUCCESS)
 		goto out;
 
+#ifndef CONFIG_NRF700X_RADIO_TEST
 	status = nrf_wifi_wlan_fmac_dbgfs_twt_init(rpu_ctx_lnx->dbgfs_wlan_root,
 						   rpu_ctx_lnx);
 
 	if (status != NRF_WIFI_STATUS_SUCCESS)
 		goto out;
-
+#endif
 	status = nrf_wifi_wlan_fmac_dbgfs_stats_init(
 		rpu_ctx_lnx->dbgfs_wlan_root, rpu_ctx_lnx);
 

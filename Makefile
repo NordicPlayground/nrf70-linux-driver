@@ -8,8 +8,8 @@ DTS = dts/nrf70_rpi_interposer.dts
 DRV_FUNC_NAME =  _wifi_fmac
 
 # If mode != STA throw error
-ifneq ($(MODE), STA)
-$(error Invalid MODE=$(MODE) specified. Valid values are STA)
+ifeq (, $(filter STA RADIO-TEST, $(MODE)))
+$(error Invalid MODE=$(MODE) specified. Valid values are STA, RADIO-TEST)
 endif
 
 ifeq ($(MODE), STA)
@@ -90,7 +90,9 @@ OBJS += $(LINUX_SHIM_DIR)/src/cfg80211_if.o
 OBJS += $(LINUX_SHIM_DIR)/src/wiphy.o
 OBJS += $(LINUX_SHIM_DIR)/src/debugfs/wlan_fmac_stats.o
 OBJS += $(LINUX_SHIM_DIR)/src/debugfs/wlan_fmac_ver.o
+ifneq ($(MODE), RADIO-TEST)
 OBJS += $(LINUX_SHIM_DIR)/src/debugfs/wlan_fmac_twt.o
+endif
 OBJS += $(LINUX_SHIM_DIR)/src/debugfs/wlan_fmac_conf.o
 
 OBJS += $(LINUX_SHIM_DIR)/src/spi/src/rpu_hw_if.o

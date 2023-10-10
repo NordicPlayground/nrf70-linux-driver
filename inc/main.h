@@ -57,6 +57,11 @@ struct nrf_wifi_ctx_lnx {
 	struct dentry *dbgfs_wlan_stats_root;
 	struct dentry *dbgfs_wlan_conf_root;
 	struct rpu_conf_params conf_params;
+#ifdef CONFIG_NRF700X_RADIO_TEST
+	bool rf_test_run;
+	unsigned char rf_test;
+	unsigned char *rx_cap_buf;
+#endif /* CONFIG_NRF700X_RADIO_TEST */
 #ifdef DEBUG_MODE_SUPPORT
 	struct nrf_wifi_umac_set_beacon_info info;
 	struct rpu_btcoex btcoex;
