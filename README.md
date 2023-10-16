@@ -207,23 +207,23 @@ RADIO-TEST mode is used to characterize TX/RX functionalities of RPU with differ
     ```bash
     sudo insmod nrf_wifi_fmac_radio_test.ko
     ```
-3. The commands used for radio test can be found [`here`](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/nrf/samples/wifi/radio_test/radio_test_subcommands).
+3. The commands used for radio test can be found [`here`](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/nrf/samples/wifi/radio_test/radio_test_subcommands.html).
 4. To set different test parameters `debugfs` is used
    
-   > For EK to transmit 10000 packets (TX transmit count) with the required modulation, TX power and channel
+   > For nRF70 Series device  to transmit 10000 packets (TX transmit count) with the required modulation, TX power and channel
      (e.g. 11g, 54 Mbps, channel 11):
    ```bash
-   #echo init=11 > /sys/kernel/debug/nrf/wifi/conf
-   #echo tx_pkt_tput_mode=0 > /sys/kernel/debug/nrf/wifi/conf
-   #echo tx_pkt_rate=54 > /sys/kernel/debug/nrf/wifi/conf
-   #echo tx_pkt_len=1024 > /sys/kernel/debug/nrf/wifi/conf
-   #echo tx_pkt_gap=100 > /sys/kernel/debug/nrf/wifi/conf
-   #echo tx_pkt_num=10000 > /sys/kernel/debug/nrf/wifi/conf
-   #echo tx=1 > /sys/kernel/debug/nrf/wifi/conf
+   # echo init=11 > /sys/kernel/debug/nrf/wifi/conf
+   # echo tx_pkt_tput_mode=0 > /sys/kernel/debug/nrf/wifi/conf
+   # echo tx_pkt_rate=54 > /sys/kernel/debug/nrf/wifi/conf
+   # echo tx_pkt_len=1024 > /sys/kernel/debug/nrf/wifi/conf
+   # echo tx_pkt_gap=100 > /sys/kernel/debug/nrf/wifi/conf
+   # echo tx_pkt_num=10000 > /sys/kernel/debug/nrf/wifi/conf
+   # echo tx=1 > /sys/kernel/debug/nrf/wifi/conf
    ```
    Once set check the configuration settings in `/sys/kernel/debug/nrf/wifi/conf`. Typically the configuration will be as below
    ```bash
-   root@ubuntu:~# cat /sys/kernel/debug/nrf/wifi/conf
+   # cat /sys/kernel/debug/nrf/wifi/conf
    ************* Configured Parameters ***********
    phy_calib_rxdc = 1
    phy_calib_txdc = 1
@@ -257,12 +257,12 @@ RADIO-TEST mode is used to characterize TX/RX functionalities of RPU with differ
    ```
 6. To view the test results
    ```bash
-   #cat /sys/kernel/debug/nrf/wifi/stats
+   # cat /sys/kernel/debug/nrf/wifi/stats
    ```
    Typically the results will be as below after running the test.
    
    ```bash
-   root@ubuntu:~# cat /sys/kernel/debug/nrf/wifi/stats
+   # cat /sys/kernel/debug/nrf/wifi/stats
    ************* PHY STATS ***********
    rssi_avg = -64 dBm
    ofdm_crc32_pass_cnt=5140
