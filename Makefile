@@ -85,7 +85,11 @@ OBJS += $(LINUX_SHIM_DIR)/src/netdev.o
 OBJS += $(LINUX_SHIM_DIR)/src/linux_util.o
 OBJS += $(LINUX_SHIM_DIR)/src/main.o
 OBJS += $(LINUX_SHIM_DIR)/src/shim.o
+ifeq ($(MODE), RADIO-TEST)
+OBJS += $(LINUX_SHIM_DIR)/src/debugfs/radio_test.o
+else
 OBJS += $(LINUX_SHIM_DIR)/src/debugfs/main.o
+endif
 OBJS += $(LINUX_SHIM_DIR)/src/cfg80211_if.o
 OBJS += $(LINUX_SHIM_DIR)/src/wiphy.o
 OBJS += $(LINUX_SHIM_DIR)/src/debugfs/stats.o
@@ -93,7 +97,6 @@ OBJS += $(LINUX_SHIM_DIR)/src/debugfs/wlan_fmac_ver.o
 ifneq ($(MODE), RADIO-TEST)
 OBJS += $(LINUX_SHIM_DIR)/src/debugfs/wlan_fmac_twt.o
 endif
-OBJS += $(LINUX_SHIM_DIR)/src/debugfs/radio_test.o
 
 OBJS += $(LINUX_SHIM_DIR)/src/spi/src/rpu_hw_if.o
 OBJS += $(LINUX_SHIM_DIR)/src/spi/src/device.o
