@@ -11,10 +11,8 @@
 #include "fmac_api.h"
 #include "fmac_dbgfs_if.h"
 
-#define MAX_CONF_BUF_SIZE 500
-#define MAX_ERR_STR_SIZE 80
-
 struct nrf_wifi_ctx_lnx *ctx;
+extern struct nrf_wifi_drv_priv_lnx rpu_drv_priv;
 
 static __always_inline unsigned char
 param_get_val(unsigned char *buf, unsigned char *str, unsigned long *val)
@@ -61,7 +59,7 @@ static __always_inline unsigned char param_get_match(unsigned char *buf,
 		return 0;
 }
 
-static int nrf_wifi_wlan_fmac_conf_disp(struct seq_file *m, void *v)
+static int nrf_wifi_wlan_fmac_radio_test_conf_disp(struct seq_file *m, void *v)
 {
 	struct rpu_conf_params *conf_params = NULL;
 
@@ -69,13 +67,6 @@ static int nrf_wifi_wlan_fmac_conf_disp(struct seq_file *m, void *v)
 
 	seq_puts(m, "************* Configured Parameters ***********\n");
 
-#ifndef CONFIG_NRF700X_RADIO_TEST
-	seq_printf(m, "uapsd_queue = %d\n", conf_params->uapsd_queue);
-	seq_printf(m, "power_save = %s\n",
-		   conf_params->power_save ? "ON" : "OFF");
-	seq_printf(m, "he_gi = %d\n", conf_params->he_gi);
-	seq_printf(m, "rts_threshold = %d\n", conf_params->rts_threshold);
-#else
 	seq_printf(m, "phy_calib_rxdc = %d\n",
 		   (conf_params->phy_calib & NRF_WIFI_PHY_CALIB_FLAG_RXDC) ? 1 :
 									     0);
@@ -123,11 +114,8 @@ static int nrf_wifi_wlan_fmac_conf_disp(struct seq_file *m, void *v)
 		   conf_params->country_code[1]);
 	seq_printf(m, "bypass_reg_domain = %d\n",
 		   conf_params->bypass_regulatory);
-#endif
 	return 0;
 }
-
-#ifdef CONFIG_NRF700X_RADIO_TEST
 
 static bool check_valid_chan_2g(unsigned char chan_num)
 {
@@ -1654,31 +1642,18 @@ static int nrf_wifi_radio_test_set_bypass_reg(struct nrf_wifi_ctx_lnx *ctx,
 error:
 	return err_val;
 }
-#endif
 
-void nrf_wifi_lnx_wlan_fmac_conf_init(struct rpu_conf_params *conf_params)
-{
-	memset(conf_params, 0, sizeof(*conf_params));
-
-	conf_params->he_gi = -1;
-	conf_params->power_save = 0;
-}
-
-static ssize_t nrf_wifi_wlan_fmac_conf_write(struct file *file,
-					     const char __user *in_buf,
-					     size_t count, loff_t *ppos)
+static ssize_t
+nrf_wifi_wlan_fmac_radio_test_conf_write(struct file *file,
+					 const char __user *in_buf,
+					 size_t count, loff_t *ppos)
 {
 	char *conf_buf = NULL;
 	unsigned long val = 0;
-#ifdef CONFIG_NRF700X_RADIO_TEST
 	long sval = 0;
-#endif
 	char err_str[MAX_ERR_STR_SIZE];
 	ssize_t err_val = count;
 	struct nrf_wifi_ctx_lnx *ctx = NULL;
-#ifndef CONFIG_NRF700X_RADIO_TEST
-	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
-#endif
 
 	ctx = (struct nrf_wifi_ctx_lnx *)file->f_inode->i_private;
 
@@ -1711,92 +1686,6 @@ static ssize_t nrf_wifi_wlan_fmac_conf_write(struct file *file,
 
 	conf_buf[count - 1] = '\0';
 
-#ifndef CONFIG_NRF700X_RADIO_TEST
-	if (param_get_val(conf_buf, "uapsd_queue=", &val)) {
-		if ((val < 0) || (val > 15)) {
-			snprintf(err_str, MAX_ERR_STR_SIZE,
-				 "Invalid value %lu\n", val);
-			err_val = -EINVAL;
-			goto error;
-		}
-
-		if (ctx->conf_params.uapsd_queue == val)
-			goto out;
-
-		status = nrf_wifi_fmac_set_uapsd_queue(ctx->rpu_ctx, 0, val);
-
-		if (status != NRF_WIFI_STATUS_SUCCESS) {
-			snprintf(err_str, MAX_ERR_STR_SIZE,
-				 "Programming uapsd queue failed\n");
-			goto error;
-		}
-		ctx->conf_params.uapsd_queue = val;
-		goto error;
-	} else if (param_get_val(conf_buf, "power_save=", &val)) {
-		if ((val != 0) && (val != 1)) {
-			snprintf(err_str, MAX_ERR_STR_SIZE,
-				 "Invalid value %lu\n", val);
-			err_val = -EINVAL;
-			goto error;
-		}
-
-		if (ctx->conf_params.power_save == val)
-			goto out;
-
-		status = nrf_wifi_fmac_set_power_save(ctx->rpu_ctx, 0, val);
-
-		if (status != NRF_WIFI_STATUS_SUCCESS) {
-			snprintf(err_str, MAX_ERR_STR_SIZE,
-				 "Programming power save failed\n");
-			goto error;
-		}
-		ctx->conf_params.power_save = val;
-	} else if (param_get_val(conf_buf, "he_gi=", &val)) {
-		if ((val < 0) || (val > 2)) {
-			snprintf(err_str, MAX_ERR_STR_SIZE,
-				 "Invalid value %lu\n", val);
-			err_val = -EINVAL;
-			goto error;
-		}
-
-		if (ctx->conf_params.he_gi == val)
-			goto out;
-		ctx->conf_params.he_gi = val;
-	} else if (param_get_val(conf_buf, "rts_threshold=", &val)) {
-		struct nrf_wifi_umac_set_wiphy_info *wiphy_info = NULL;
-
-		if (val <= 0) {
-			snprintf(err_str, MAX_ERR_STR_SIZE,
-				 "Invalid value %lu\n", val);
-			err_val = -EINVAL;
-			goto error;
-		}
-
-		if (ctx->conf_params.rts_threshold == val)
-			goto out;
-
-		wiphy_info = kzalloc(sizeof(*wiphy_info), GFP_KERNEL);
-
-		if (!wiphy_info) {
-			snprintf(err_str, MAX_ERR_STR_SIZE,
-				 "Unable to allocate memory\n");
-			goto error;
-		}
-		wiphy_info->rts_threshold = val;
-
-		status = nrf_wifi_fmac_set_wiphy_params(ctx->rpu_ctx, 0,
-							wiphy_info);
-
-		if (status != NRF_WIFI_STATUS_SUCCESS) {
-			snprintf(err_str, MAX_ERR_STR_SIZE,
-				 "Programming rts_threshold failed\n");
-			goto error;
-		}
-		if (wiphy_info)
-			kfree(wiphy_info);
-
-		ctx->conf_params.rts_threshold = val;
-#else
 	if (param_get_match(conf_buf, "set_defaults")) {
 		nrf_wifi_radio_test_conf_init(&ctx->conf_params);
 	} else if (param_get_val(conf_buf, "phy_calib_rxdc=", &val)) {
@@ -1925,8 +1814,6 @@ static ssize_t nrf_wifi_wlan_fmac_conf_write(struct file *file,
 				    ctx, strstr(conf_buf, "=") + 1, err_str))
 				goto error;
 		}
-#endif
-		/* CONFIG_NRF700X_RADIO_TEST */
 	} else {
 		snprintf(err_str, MAX_ERR_STR_SIZE,
 			 "Invalid parameter name: %s\n", conf_buf);
@@ -1944,23 +1831,31 @@ out:
 	return err_val;
 }
 
-static int nrf_wifi_wlan_fmac_conf_open(struct inode *inode, struct file *file)
+static int nrf_wifi_wlan_fmac_radio_test_conf_open(struct inode *inode,
+						   struct file *file)
 {
 	ctx = (struct nrf_wifi_ctx_lnx *)inode->i_private;
 
-	return single_open(file, nrf_wifi_wlan_fmac_conf_disp, ctx);
+	return single_open(file, nrf_wifi_wlan_fmac_radio_test_conf_disp, ctx);
 }
 
 static const struct file_operations fops_wlan_conf = {
-	.open = nrf_wifi_wlan_fmac_conf_open,
+	.open = nrf_wifi_wlan_fmac_radio_test_conf_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
-	.write = nrf_wifi_wlan_fmac_conf_write,
+	.write = nrf_wifi_wlan_fmac_radio_test_conf_write,
 	.release = single_release
 };
 
-int nrf_wifi_wlan_fmac_dbgfs_conf_init(struct dentry *root,
-				       struct nrf_wifi_ctx_lnx *ctx)
+void nrf_wifi_wlan_fmac_dbgfs_radio_test_conf_deinit(
+	struct nrf_wifi_ctx_lnx *ctx)
+{
+	if (ctx->dbgfs_wlan_conf_root)
+		debugfs_remove(ctx->dbgfs_wlan_conf_root);
+}
+
+int nrf_wifi_wlan_fmac_dbgfs_radio_test_conf_init(struct dentry *root,
+						  struct nrf_wifi_ctx_lnx *ctx)
 {
 	int ret = 0;
 
@@ -1982,15 +1877,46 @@ int nrf_wifi_wlan_fmac_dbgfs_conf_init(struct dentry *root,
 	goto out;
 
 fail:
-	nrf_wifi_wlan_fmac_dbgfs_conf_deinit(ctx);
+	nrf_wifi_wlan_fmac_dbgfs_radio_test_conf_deinit(ctx);
 out:
 	return ret;
 }
 
-void nrf_wifi_wlan_fmac_dbgfs_conf_deinit(struct nrf_wifi_ctx_lnx *ctx)
+int nrf_wifi_wlan_fmac_dbgfs_radio_test_init(
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx)
 {
-	if (ctx->dbgfs_wlan_conf_root)
-		debugfs_remove(ctx->dbgfs_wlan_conf_root);
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 
-	ctx->dbgfs_wlan_conf_root = NULL;
+	rpu_ctx_lnx->dbgfs_wlan_root =
+		debugfs_create_dir("wifi", rpu_drv_priv.dbgfs_root);
+
+	if (!rpu_ctx_lnx->dbgfs_wlan_root)
+		goto out;
+
+	status = nrf_wifi_wlan_fmac_dbgfs_radio_test_conf_init(
+		rpu_ctx_lnx->dbgfs_wlan_root, rpu_ctx_lnx);
+
+	if (status != NRF_WIFI_STATUS_SUCCESS)
+		goto out;
+
+	status = nrf_wifi_wlan_fmac_dbgfs_stats_init(
+		rpu_ctx_lnx->dbgfs_wlan_root, rpu_ctx_lnx);
+
+	if (status != NRF_WIFI_STATUS_SUCCESS)
+		goto out;
+
+out:
+	if (status != NRF_WIFI_STATUS_SUCCESS)
+		nrf_wifi_wlan_fmac_dbgfs_radio_test_deinit(rpu_ctx_lnx);
+
+	return status;
+}
+
+void nrf_wifi_wlan_fmac_dbgfs_radio_test_deinit(
+	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx)
+{
+	if (rpu_ctx_lnx->dbgfs_wlan_root)
+		debugfs_remove_recursive(rpu_ctx_lnx->dbgfs_wlan_root);
+
+	rpu_ctx_lnx->dbgfs_wlan_root = NULL;
 }

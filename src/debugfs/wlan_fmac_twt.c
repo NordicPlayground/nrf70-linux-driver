@@ -16,9 +16,6 @@
 #include "osal_ops.h"
 #include "util.h"
 
-#define MAX_CONF_BUF_SIZE 200
-#define MAX_ERR_STR_SIZE 80
-
 int twt_setup_event;
 
 void nrf_wifi_wlan_fmac_twt_init(struct rpu_twt_params *twt_params)

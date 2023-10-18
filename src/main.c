@@ -592,8 +592,11 @@ nrf_wifi_fmac_dev_init_lnx(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx)
 
 #endif /* !CONFIG_NRF700X_RADIO_TEST */
 
+#ifdef CONFIG_NRF700X_RADIO_TEST
+	status = nrf_wifi_wlan_fmac_dbgfs_radio_test_init(rpu_ctx_lnx);
+#else
 	status = nrf_wifi_wlan_fmac_dbgfs_init(rpu_ctx_lnx);
-
+#endif /* CONFIG_NRF700X_RADIO_TEST */
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		pr_err("%s: Failed to create wlan entry in DebugFS\n",
 		       __func__);
@@ -695,13 +698,13 @@ void nrf_wifi_fmac_dev_deinit_lnx(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx)
 	if_idx = vif_ctx_lnx->if_idx;
 #endif /* !CONFIG_NRF700X_RADIO_TEST */
 
-#ifndef CONFIG_NRF700X_RADIO_TEST
-	nrf_wifi_fmac_dev_deinit(rpu_ctx_lnx->rpu_ctx);
-#else
+#ifdef CONFIG_NRF700X_RADIO_TEST
 	nrf_wifi_fmac_dev_deinit_rt(rpu_ctx_lnx->rpu_ctx);
-#endif /* !CONFIG_NRF700X_RADIO_TEST */
-
+	nrf_wifi_wlan_fmac_dbgfs_radio_test_deinit(rpu_ctx_lnx);
+#else
+	nrf_wifi_fmac_dev_deinit(rpu_ctx_lnx->rpu_ctx);
 	nrf_wifi_wlan_fmac_dbgfs_deinit(rpu_ctx_lnx);
+#endif /* CONFIG_NRF700X_RADIO_TEST */
 
 #ifndef CONFIG_NRF700X_RADIO_TEST
 	/* Remove the default interface and unregister it from the netdev stack.
@@ -919,6 +922,31 @@ void nrf_wifi_twt_sleep_callbk_fn(
 
 #ifndef CONFIG_NRF700X_RADIO_TEST
 #endif /* !CONFIG_NRF700X_RADIO_TEST */
+
+int nrf_wifi_dbgfs_init(void)
+{
+	int status = -1;
+
+	rpu_drv_priv.dbgfs_root = debugfs_create_dir("nrf", NULL);
+
+	if (!rpu_drv_priv.dbgfs_root)
+		goto out;
+
+	status = 0;
+out:
+	if (status)
+		nrf_wifi_dbgfs_deinit();
+
+	return status;
+}
+
+void nrf_wifi_dbgfs_deinit(void)
+{
+	if (rpu_drv_priv.dbgfs_root)
+		debugfs_remove_recursive(rpu_drv_priv.dbgfs_root);
+
+	rpu_drv_priv.dbgfs_root = NULL;
+}
 
 int __init nrf_wifi_init_lnx(void)
 {
