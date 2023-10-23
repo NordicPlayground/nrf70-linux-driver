@@ -219,6 +219,8 @@ static int shim_pr_dbg(const char *fmt, va_list args)
 
 	ret = vprintk(mod_fmt, args);
 
+	kfree(mod_fmt);
+
 	return ret;
 }
 
@@ -239,6 +241,8 @@ static int shim_pr_info(const char *fmt, va_list args)
 
 	ret = vprintk(mod_fmt, args);
 
+	kfree(mod_fmt);
+
 	return ret;
 }
 
@@ -258,6 +262,8 @@ static int shim_pr_err(const char *fmt, va_list args)
 	strcat(mod_fmt, fmt);
 
 	ret = vprintk(mod_fmt, args);
+
+	kfree(mod_fmt);
 
 	return ret;
 }
