@@ -24,6 +24,7 @@
 #include <linux/irq.h>
 #include <net/cfg80211.h>
 #include <linux/math64.h>
+#include <linux/mutex.h>
 
 #include "osal_api.h"
 #include "osal_ops.h"
@@ -161,7 +162,7 @@ static void shim_spi_cpy_to(void *dev_ctx, unsigned long addr, const void *src,
 
 static void *shim_spinlock_alloc(void)
 {
-	struct semaphore *lock;
+	struct mutex *lock;
 
 	lock = kmalloc(sizeof(*lock), GFP_KERNEL);
 
@@ -179,27 +180,27 @@ static void shim_spinlock_free(void *lock)
 
 static void shim_spinlock_init(void *lock)
 {
-	sema_init(lock, 1);
+	mutex_init(lock);
 }
 
 static void shim_spinlock_take(void *lock)
 {
-	down(lock);
+	mutex_lock(lock);
 }
 
 static void shim_spinlock_rel(void *lock)
 {
-	up(lock);
+	mutex_unlock(lock);
 }
 
 static void shim_spinlock_irq_take(void *lock, unsigned long *flags)
 {
-	down(lock);
+	mutex_lock(lock);
 }
 
 static void shim_spinlock_irq_rel(void *lock, unsigned long *flags)
 {
-	up(lock);
+	mutex_unlock(lock);
 }
 
 static int shim_pr_dbg(const char *fmt, va_list args)
