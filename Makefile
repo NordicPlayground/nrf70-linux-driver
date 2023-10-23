@@ -25,7 +25,7 @@ ifeq ($(LOW_POWER), 1)
 ccflags-y += -DCONFIG_NRF_WIFI_LOW_POWER
 endif
 
-OSAL_DIR	= ../nrf/drivers/wifi/nrf700x/osal
+OSAL_DIR	= ../nrfxlib/nrf_wifi
 ROOT_INC_DIR	= $(shell cd $(PWD); cd $(OSAL_DIR); pwd)
 LINUX_SHIM_INC_DIR = $(shell cd $(PWD); pwd)
 LINUX_SHIM_DIR = .
