@@ -622,6 +622,7 @@ nrf_wifi_fmac_dev_init_lnx(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx)
 					sleep_type,
 #endif /* CONFIG_NRF_WIFI_LOW_POWER */
 					NRF_WIFI_DEF_PHY_CALIB, op_band,
+					CONFIG_NRF_WIFI_BEAMFORMING,
 					&tx_pwr_ctrl_params,
 					&tx_pwr_ceil_params);
 #else
@@ -630,6 +631,7 @@ nrf_wifi_fmac_dev_init_lnx(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx)
 					   sleep_type,
 #endif /* CONFIG_NRF_WIFI_LOW_POWER */
 					   NRF_WIFI_DEF_PHY_CALIB, op_band,
+					   CONFIG_NRF_WIFI_BEAMFORMING,
 					   &tx_pwr_ctrl_params);
 #endif /* !CONFIG_NRF700X_RADIO_TEST */
 	if (status != NRF_WIFI_STATUS_SUCCESS) {

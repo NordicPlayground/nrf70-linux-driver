@@ -138,8 +138,13 @@ endif
 OBJS += $(OSAL_DIR)/hw_if/hal/src/hpqm.o
 
 # Driver debugging
-# Use one of DBG/INF/ERR
-# ccflags-y += -DCONFIG_WIFI_NRF700X_LOG_LEVEL_DBG
+# Use one of DBG(4)/INF(3)/ERR(1)
+ccflags-y += -DCONFIG_WIFI_NRF700X_LOG_LEVEL=3
+
+# Scan only mode, disabled by default
+ccflags-y += -DCONFIG_NRF700X_SCAN_ONLY_MODE=0
+
+ccflags-y += -DCONFIG_NRF_WIFI_BEAMFORMING=1
 
 # Disable RAW scan results by default
 #ccflags-y += -DCONFIG_WIFI_MGMT_RAW_SCAN_RESULTS
