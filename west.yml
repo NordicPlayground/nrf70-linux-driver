@@ -8,7 +8,7 @@ manifest:
 
   projects:
     # TODO: Once west supports sparse checkout, we should use it here.
-    - name: nrf
+    - name: nrfxlib
       remote: ncs
-      repo-path: sdk-nrf
-      revision: bfb726d512545989ac1b64c0bc8694c3e5ff0b42
+      repo-path: sdk-nrfxlib
+      revision: 65ebc092adf57618e97a65872e4e7016bd94cc56
