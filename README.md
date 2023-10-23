@@ -274,13 +274,11 @@ RADIO-TEST mode is used to characterize TX/RX functionalities of RPU with differ
 
 1. Target Wake Time (TWT) feature is not supported yet.
    
-2. Maximum UDP/TCP throughputs achieved presently are in the range of 2 - 3 Mbps.
-   
-3. Intermittent issues when running UDP/TCP throughputs:
+2. Intermittent issues when running UDP/TCP throughputs:
 
    - Firmware lockup (on the nRF70 series device)
    - Linux kernel crash
    
-4. Sometimes below warning is observed in the `dmesg`
+3. Sometimes below warning is observed in the `dmesg`
 
    - `NOHZ tick-stop error: Non-RCU local softirq work is pending, handler #08!!!`
