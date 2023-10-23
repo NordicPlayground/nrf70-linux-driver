@@ -179,27 +179,27 @@ static void shim_spinlock_free(void *lock)
 
 static void shim_spinlock_init(void *lock)
 {
-	sema_init((struct semaphore *)lock, 1);
+	sema_init(lock, 1);
 }
 
 static void shim_spinlock_take(void *lock)
 {
-	down((struct semaphore *)lock);
+	down(lock);
 }
 
 static void shim_spinlock_rel(void *lock)
 {
-	up((struct semaphore *)lock);
+	up(lock);
 }
 
 static void shim_spinlock_irq_take(void *lock, unsigned long *flags)
 {
-	down((struct semaphore *)lock);
+	down(lock);
 }
 
 static void shim_spinlock_irq_rel(void *lock, unsigned long *flags)
 {
-	up((struct semaphore *)lock);
+	up(lock);
 }
 
 static int shim_pr_dbg(const char *fmt, va_list args)
