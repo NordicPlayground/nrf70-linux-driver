@@ -2090,12 +2090,17 @@ int nrf_wifi_cfg80211_get_station(struct wiphy *wiphy, struct net_device *dev,
 	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
 	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	unsigned int count = 50;
+	int status = 0;
 
 	vif_ctx_lnx = netdev_priv(dev);
 	rpu_ctx_lnx = vif_ctx_lnx->rpu_ctx;
 
-	nrf_wifi_fmac_get_station(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx,
-				  (void *)mac);
+	status = nrf_wifi_fmac_get_station(rpu_ctx_lnx->rpu_ctx,
+					   vif_ctx_lnx->if_idx, (void *)mac);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_get_station failed\n", __func__);
+		return -EIO;
+	}
 
 	pr_debug("%s: Waiting for response from RPU (Get STA)\n", __func__);
 
@@ -2123,6 +2128,7 @@ int nrf_wifi_cfg80211_get_tx_power(struct wiphy *wiphy,
 	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
 	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	unsigned int count = 50;
+	int status = 0;
 
 	vif_ctx_lnx = netdev_priv(wdev->netdev);
 	rpu_ctx_lnx = vif_ctx_lnx->rpu_ctx;
@@ -2133,7 +2139,13 @@ int nrf_wifi_cfg80211_get_tx_power(struct wiphy *wiphy,
 		pr_debug("%s: Interface is not UP\n", __func__);
 		return -ENETDOWN;
 	}
-	nrf_wifi_fmac_get_tx_power(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx);
+
+	status = nrf_wifi_fmac_get_tx_power(rpu_ctx_lnx->rpu_ctx,
+					    vif_ctx_lnx->if_idx);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_get_tx_power failed\n", __func__);
+		return -EIO;
+	}
 
 	pr_debug("%s: Waiting for response from RPU (Get TX power)\n",
 		 __func__);
@@ -2171,7 +2183,12 @@ int nrf_wifi_cfg80211_get_channel(struct wiphy *wiphy,
 		return -ENETDOWN;
 	}
 
-	nrf_wifi_fmac_get_channel(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx);
+	status = nrf_wifi_fmac_get_channel(rpu_ctx_lnx->rpu_ctx,
+					   vif_ctx_lnx->if_idx);
+	if (status == NRF_WIFI_STATUS_FAIL) {
+		pr_err("%s: nrf_wifi_fmac_get_channel failed\n", __func__);
+		return -EIO;
+	}
 
 	pr_debug("%s: Waiting for response from RPU (Get Channel)\n", __func__);
 
