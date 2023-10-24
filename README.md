@@ -284,8 +284,3 @@ RADIO-TEST mode is used to characterize TX/RX functionalities of RPU with differ
 4. Sometimes below warning is observed in the `dmesg`
 
    - `NOHZ tick-stop error: Non-RCU local softirq work is pending, handler #08!!!`
-
-5. Sometimes during boot couple of commands timeout and below warning is observed in the `dmesg`, once the driver is fully initialized the commands work as expected, so, these warnings can be ignored.
-
-   - `Timed out waiting for response from RPU (Get Channel)`
-   - `Timed out waiting for response from RPU (Set TX power)`

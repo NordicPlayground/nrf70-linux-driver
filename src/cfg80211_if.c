@@ -2129,6 +2129,10 @@ int nrf_wifi_cfg80211_get_tx_power(struct wiphy *wiphy,
 
 	vif_ctx_lnx->event_tx_power = 0;
 
+	if (!(wdev->netdev->flags & IFF_UP)) {
+		pr_debug("%s: Interface is not UP\n", __func__);
+		return -ENETDOWN;
+	}
 	nrf_wifi_fmac_get_tx_power(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx);
 
 	pr_debug("%s: Waiting for response from RPU (Get TX power)\n",
@@ -2161,6 +2165,11 @@ int nrf_wifi_cfg80211_get_channel(struct wiphy *wiphy,
 
 	vif_ctx_lnx = netdev_priv(wdev->netdev);
 	rpu_ctx_lnx = vif_ctx_lnx->rpu_ctx;
+
+	if (!(wdev->netdev->flags & IFF_UP)) {
+		pr_debug("%s: Interface is not UP\n", __func__);
+		return -ENETDOWN;
+	}
 
 	nrf_wifi_fmac_get_channel(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx);
 
