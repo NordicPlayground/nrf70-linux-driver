@@ -1714,9 +1714,8 @@ int nrf_wifi_cfg80211_suspend(struct wiphy *wiphy, struct cfg80211_wowlan *wow)
 	rpu_ctx_lnx = wiphy_priv(wiphy);
 
 	if (wow) {
-		/* Ignoring other variable and strcutures in cfg80211_wowlan
+		/* Ignoring other variable and structures in cfg80211_wowlan
 		 * Not supported at UMAC level
-		 *
 		 */
 
 		if (wow->rfkill_release) {
