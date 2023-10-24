@@ -833,7 +833,7 @@ int nrf_wifi_cfg80211_scan(struct wiphy *wiphy,
 	struct nrf_wifi_ctx_lnx *rpu_ctx_lnx = NULL;
 	struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx = NULL;
 	struct nrf_wifi_umac_scan_info *scan_info = NULL;
-	int status = -1;
+	int status = -1, i;
 	wdev = req->wdev;
 
 	if (wdev->iftype == NL80211_IFTYPE_AP)
@@ -858,6 +858,31 @@ int nrf_wifi_cfg80211_scan(struct wiphy *wiphy,
 
 	if (!req->n_ssids)
 		scan_info->scan_params.passive_scan = 1;
+
+	for (i = 0; i < req->n_ssids; i++) {
+		if (req->ssids[i].ssid_len == 0)
+			continue;
+
+		if (req->ssids[i].ssid_len > NRF_WIFI_MAX_SSID_LEN) {
+			pr_err("%s: SSID length is too long %d\n", __func__,
+			       req->ssids[i].ssid_len);
+			goto out;
+		}
+
+		if (scan_info->scan_params.num_scan_ssids ==
+		    NRF_WIFI_SCAN_MAX_NUM_SSIDS) {
+			pr_err("%s: Max number of SSIDs reached\n", __func__);
+			goto out;
+		}
+
+		memcpy(scan_info->scan_params.scan_ssids[i].nrf_wifi_ssid,
+		       req->ssids[i].ssid, req->ssids[i].ssid_len);
+
+		scan_info->scan_params.scan_ssids[i].nrf_wifi_ssid_len =
+			req->ssids[i].ssid_len;
+
+		scan_info->scan_params.num_scan_ssids++;
+	}
 
 	scan_info->scan_reason = SCAN_DISPLAY;
 	status = nrf_wifi_fmac_scan(rpu_ctx_lnx->rpu_ctx, vif_ctx_lnx->if_idx,
