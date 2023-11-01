@@ -103,12 +103,14 @@ OBJS += $(LINUX_SHIM_DIR)/src/spi/src/device.o
 OBJS += $(LINUX_SHIM_DIR)/src/spi/src/spi_if.o
 
 
+# RAW scan feature is mandatory to work with cfg80211
 ccflags-y += \
 	     -DCONFIG_NRF700X_MAX_TX_TOKENS=10\
 	     -DCONFIG_NRF700X_MAX_TX_AGGREGATION=12 \
 	     -DCONFIG_NRF700X_RX_MAX_DATA_SIZE=1600 \
 	     -DCONFIG_NRF700X_RX_NUM_BUFS=63 \
 	     -DCONFIG_NRF700X_RX_MAX_DATA_SIZE=1600 \
+	     -DCONFIG_WIFI_MGMT_RAW_SCAN_RESULTS \
 	     -DCONFIG_NRF700X_ANT_GAIN_2G=0 \
 	     -DCONFIG_NRF700X_ANT_GAIN_5G_BAND1=0 \
 	     -DCONFIG_NRF700X_ANT_GAIN_5G_BAND2=0 \
@@ -146,8 +148,6 @@ ccflags-y += -DCONFIG_NRF700X_SCAN_ONLY_MODE=0
 
 ccflags-y += -DCONFIG_NRF_WIFI_BEAMFORMING=1
 
-# Disable RAW scan results by default
-#ccflags-y += -DCONFIG_WIFI_MGMT_RAW_SCAN_RESULTS
 ccflags-y += -Werror
 
 NAME = nrf$(DRV_FUNC_NAME)$(DRV_MODE_NAME)
