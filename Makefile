@@ -144,9 +144,19 @@ OBJS += $(OSAL_DIR)/hw_if/hal/src/hpqm.o
 ccflags-y += -DCONFIG_WIFI_NRF700X_LOG_LEVEL=3
 
 # Scan only mode, disabled by default
-ccflags-y += -DCONFIG_NRF700X_SCAN_ONLY_MODE=0
+# ccflags-y += -DCONFIG_NRF700X_SCAN_ONLY
 
 ccflags-y += -DCONFIG_NRF_WIFI_BEAMFORMING=1
+
+# shipped tells the build system to not try to build this file
+ifeq ($(MODE), RADIO-TEST)
+FW_PATCH_BIN=${ROOT_INC_DIR}/fw_bins/radio_test/nrf70.bin
+OBJS += ${OSAL_DIR}/fw_bins/radio_test/fw_patch_bin.o
+else
+FW_PATCH_BIN=${ROOT_INC_DIR}/fw_bins/default/nrf70.bin
+OBJS += ${OSAL_DIR}/fw_bins/default/fw_patch_bin.o
+ccflags-y += -DCONFIG_NRF700X_SYSTEM_MODE
+endif
 
 ccflags-y += -Werror
 
@@ -156,10 +166,17 @@ obj-m += $(NAME).o
 
 $(NAME)-objs= $(OBJS)
 
-all: dt
+all: dt gen_patch_bin
 	@make -C $(KROOT) M=$(PWD) modules
 dt:
 	dtc -@ -I dts -O dtb -o $(basename $(DTS)).dtbo $(DTS)
+
+gen_patch_bin:
+	cd $(shell dirname ${FW_PATCH_BIN}); \
+	ld -r -b binary -o fw_patch_bin.o_shipped nrf70.bin; \
+	touch .fw_patch_bin.o.cmd
+
 clean:
 	@make -C $(KROOT) M=$(PWD) clean
 	@find $(OSAL_DIR) -name "*.o*" | xargs rm -f
+	rm -f fw_patch_bin.o

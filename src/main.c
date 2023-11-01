@@ -17,7 +17,7 @@
 #include "fmac_main.h"
 #include "net_stack.h"
 #include "cfg80211_if.h"
-#include "rpu_fw_patches.h"
+#include "patch_info.h"
 
 #ifndef CONFIG_NRF700X_RADIO_TEST
 char *base_mac_addr = "0019F5331179";
@@ -45,6 +45,9 @@ MODULE_PARM_DESC(phy_calib,
 /* 3 bytes for addreess, 3 bytes for length */
 #define MAX_PKT_RAM_TX_ALIGN_OVERHEAD 6
 #define MAX_RX_QUEUES 3
+
+extern const uint8_t _binary_nrf70_bin_start[];
+extern const uint8_t _binary_nrf70_bin_end[];
 
 unsigned char aggregation = 1;
 unsigned char wmm = 1;
@@ -155,108 +158,6 @@ void nrf_wifi_wlan_fmac_del_vif(struct nrf_wifi_fmac_vif_ctx_lnx *vif_ctx_lnx)
 }
 #endif /* !CONFIG_NRF700X_RADIO_TEST */
 
-static char *
-nrf_wifi_fmac_fw_loc_get_lnx(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
-			     enum nrf_wifi_fw_type fw_type,
-			     enum nrf_wifi_fw_subtype fw_subtype)
-{
-	char *fw_loc = NULL;
-
-	fw_loc = pal_ops_get_fw_loc(fmac_dev_ctx->fpriv->opriv, fw_type,
-				    fw_subtype);
-
-	return fw_loc;
-}
-
-enum nrf_wifi_status
-nrf_wifi_fmac_fw_get_lnx(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
-			 struct device *dev, enum nrf_wifi_fw_type fw_type,
-			 enum nrf_wifi_fw_subtype fw_subtype,
-			 struct nrf_wifi_fw_info *fw_info)
-{
-	enum nrf_wifi_status status = NRF_WIFI_STATUS_SUCCESS;
-	const struct firmware *fw = NULL;
-	char *fw_loc = NULL;
-	const unsigned char *fw_data = NULL;
-	unsigned int fw_data_size = 0;
-	int ret = -1;
-
-	if (fw_type == NRF_WIFI_FW_TYPE_LMAC_PATCH) {
-		if (fw_subtype == NRF_WIFI_FW_SUBTYPE_PRI) {
-			fw_data = nrf_wifi_lmac_patch_pri_bimg;
-			fw_data_size = sizeof(nrf_wifi_lmac_patch_pri_bimg);
-		} else if (fw_subtype == NRF_WIFI_FW_SUBTYPE_SEC) {
-			fw_data = nrf_wifi_lmac_patch_sec_bin;
-			fw_data_size = sizeof(nrf_wifi_lmac_patch_sec_bin);
-		} else {
-			pr_err("%s: Invalid fw_subtype (%d)\n", __func__,
-			       fw_subtype);
-		}
-	} else if (fw_type == NRF_WIFI_FW_TYPE_UMAC_PATCH) {
-		if (fw_subtype == NRF_WIFI_FW_SUBTYPE_PRI) {
-			fw_data = nrf_wifi_umac_patch_pri_bimg;
-			fw_data_size = sizeof(nrf_wifi_umac_patch_pri_bimg);
-		} else if (fw_subtype == NRF_WIFI_FW_SUBTYPE_SEC) {
-			fw_data = nrf_wifi_umac_patch_sec_bin;
-			fw_data_size = sizeof(nrf_wifi_umac_patch_sec_bin);
-		} else {
-			pr_err("%s: Invalid fw_subtype (%d)\n", __func__,
-			       fw_subtype);
-		}
-	} else {
-		fw_loc = nrf_wifi_fmac_fw_loc_get_lnx(fmac_dev_ctx, fw_type,
-						      fw_subtype);
-
-		if (!fw_loc) {
-			/* Nothing to be downloaded */
-			goto out;
-		}
-
-		ret = request_firmware(&fw, fw_loc, dev);
-
-		if (ret) {
-			pr_err("Failed to get %s, Error = %d\n", fw_loc, ret);
-			fw = NULL;
-
-			/* It is possible that FW patches are not present, so not being
-			 * able to get them is not a failure case */
-			if ((fw_type != NRF_WIFI_FW_TYPE_LMAC_PATCH) &&
-			    (fw_type != NRF_WIFI_FW_TYPE_UMAC_PATCH))
-				status = NRF_WIFI_STATUS_FAIL;
-			goto out;
-		}
-
-		fw_data = fw->data;
-		fw_data_size = fw->size;
-	}
-
-	fw_info->data = kzalloc(fw_data_size, GFP_KERNEL);
-
-	if (!fw_info->data) {
-		pr_err("%s: Unable to allocate memory\n", __func__);
-		status = NRF_WIFI_STATUS_FAIL;
-		goto out;
-	}
-
-	memcpy(fw_info->data, fw_data, fw_data_size);
-
-	fw_info->size = fw_data_size;
-
-out:
-	if (fw)
-		release_firmware(fw);
-
-	return status;
-}
-
-void nrf_wifi_wlan_fw_rel(struct nrf_wifi_fw_info *fw_info)
-{
-	if (fw_info->data)
-		kfree(fw_info->data);
-
-	fw_info->data = 0;
-}
-
 enum nrf_wifi_status
 nrf_wifi_wlan_fmac_fw_load(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx,
 			   struct device *dev)
@@ -266,46 +167,12 @@ nrf_wifi_wlan_fmac_fw_load(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx,
 
 	memset(&fw_info, 0, sizeof(fw_info));
 
-	/* Get the LMAC patches */
-	status = nrf_wifi_fmac_fw_get_lnx(rpu_ctx_lnx->rpu_ctx, dev,
-					  NRF_WIFI_FW_TYPE_LMAC_PATCH,
-					  NRF_WIFI_FW_SUBTYPE_PRI,
-					  &fw_info.lmac_patch_pri);
-
+	status = nrf_wifi_fmac_fw_parse(
+		rpu_ctx_lnx->rpu_ctx, (const uint8_t *)_binary_nrf70_bin_start,
+		_binary_nrf70_bin_end - _binary_nrf70_bin_start, &fw_info);
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
-		pr_err("%s: Unable to get LMAC BIMG patch\n", __func__);
-		goto out;
-	}
-
-	status = nrf_wifi_fmac_fw_get_lnx(rpu_ctx_lnx->rpu_ctx, dev,
-					  NRF_WIFI_FW_TYPE_LMAC_PATCH,
-					  NRF_WIFI_FW_SUBTYPE_SEC,
-					  &fw_info.lmac_patch_sec);
-
-	if (status != NRF_WIFI_STATUS_SUCCESS) {
-		pr_err("%s: Unable to get LMAC BIN patch\n", __func__);
-		goto out;
-	}
-
-	/* Get the UMAC patches */
-	status = nrf_wifi_fmac_fw_get_lnx(rpu_ctx_lnx->rpu_ctx, dev,
-					  NRF_WIFI_FW_TYPE_UMAC_PATCH,
-					  NRF_WIFI_FW_SUBTYPE_PRI,
-					  &fw_info.umac_patch_pri);
-
-	if (status != NRF_WIFI_STATUS_SUCCESS) {
-		pr_err("%s: Unable to get UMAC BIMG patch\n", __func__);
-		goto out;
-	}
-
-	status = nrf_wifi_fmac_fw_get_lnx(rpu_ctx_lnx->rpu_ctx, dev,
-					  NRF_WIFI_FW_TYPE_UMAC_PATCH,
-					  NRF_WIFI_FW_SUBTYPE_SEC,
-					  &fw_info.umac_patch_sec);
-
-	if (status != NRF_WIFI_STATUS_SUCCESS) {
-		pr_err("%s: Unable to get UMAC BIN patch\n", __func__);
-		goto out;
+		pr_err("%s: nrf_wifi_fmac_fw_parse failed\n", __func__);
+		return status;
 	}
 
 	/* Load the FW's to the RPU */
@@ -319,11 +186,6 @@ nrf_wifi_wlan_fmac_fw_load(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx,
 	status = NRF_WIFI_STATUS_SUCCESS;
 
 out:
-	nrf_wifi_wlan_fw_rel(&fw_info.lmac_patch_pri);
-	nrf_wifi_wlan_fw_rel(&fw_info.lmac_patch_sec);
-	nrf_wifi_wlan_fw_rel(&fw_info.umac_patch_pri);
-	nrf_wifi_wlan_fw_rel(&fw_info.umac_patch_sec);
-
 	return status;
 }
 
