@@ -5,10 +5,17 @@ manifest:
   remotes:
     - name: ncs
       url-base: https://github.com/nrfconnect
+    - name: zep_up
+      url-base: https://github.com/zephyrproject-rtos
 
   projects:
     # TODO: Once west supports sparse checkout, we should use it here.
     - name: nrfxlib
       remote: ncs
       repo-path: sdk-nrfxlib
-      revision: pull/1104/head
+      revision: 712a6aac342a70ebec5d84bb4b670241684fe405
+    # For scripts
+    - name: zephyr
+      remote: zep_up
+      repo-path: zephyr
+      revision: main
