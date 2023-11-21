@@ -208,7 +208,7 @@ static int shim_pr_dbg(const char *fmt, va_list args)
 	char *mod_fmt = NULL;
 	int ret = -1;
 
-	mod_fmt = kmalloc(strlen(fmt) + 1 + 3, GFP_ATOMIC);
+	mod_fmt = kmalloc(strlen(fmt) + strlen(KERN_DEBUG), GFP_ATOMIC);
 
 	if (!mod_fmt) {
 		pr_err("%s: Unable to allocate memory for mod_fmt\n", __func__);
@@ -230,7 +230,7 @@ static int shim_pr_info(const char *fmt, va_list args)
 	char *mod_fmt = NULL;
 	int ret = -1;
 
-	mod_fmt = kmalloc(strlen(fmt) + 1 + 3, GFP_ATOMIC);
+	mod_fmt = kmalloc(strlen(fmt) + strlen(KERN_INFO), GFP_ATOMIC);
 
 	if (!mod_fmt) {
 		pr_err("%s: Unable to allocate memory for mod_fmt\n", __func__);
@@ -252,7 +252,7 @@ static int shim_pr_err(const char *fmt, va_list args)
 	char *mod_fmt = NULL;
 	int ret = -1;
 
-	mod_fmt = kmalloc(strlen(fmt) + 1 + 3, GFP_ATOMIC);
+	mod_fmt = kmalloc(strlen(fmt) + strlen(KERN_ERR), GFP_ATOMIC);
 
 	if (!mod_fmt) {
 		pr_err("%s: Unable to allocate memory for mod_fmt\n", __func__);
