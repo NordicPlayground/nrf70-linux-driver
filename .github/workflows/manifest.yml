@@ -1,0 +1,40 @@
+name: Manifest
+
+on:
+  pull_request_target:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  contribs:
+    runs-on: ubuntu-latest
+    name: Manifest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+        with:
+          path: nrf_linux
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Manifest
+        uses: zephyrproject-rtos/action-manifest@16c4cfa380ae2b6fa3daddb1a35032e69422a20f
+        with:
+          github-token: ${{ secrets.TKC_GITHUB_TOKEN }}
+          manifest-path: 'west.yml'
+          checkout-path: 'nrf_linux'
+          label-prefix: 'manifest-'
+          verbosity-level: '1'
+
+          # Add one label per line. 'manifest' always adds the label 'manifest'.
+          # 'CI-all-test:zephyr;nrfxlib,' adds the 'CI-all-test' label when the
+          # zephyr module or the nrfxlib module is changed. Each line is comma-
+          # separated.
+          labels: >
+            manifest
+            manifest-nrfxlib:nrfxlib
+          dnm-labels: 'DNM'
+
