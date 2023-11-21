@@ -20,7 +20,34 @@ jobs:
             pwd
             ls -la `pwd`
             git log --oneline --graph
+        - name: Install python dependencies
+          working-directory: nrf70-linux-driver
+          run: |
+            pip3 install -U pip
+            pip3 install -U setuptools
+            pip3 install -U wheel
+            grep -E "python-magic|junitparser|lxml|gitlint|pylint|pykwalify|yamllint" scripts/requirements-fixed.txt | xargs pip3 install -U
+
+        - name: Clone Zephyr downstream
+          env:
+            BASE_REF: ${{ github.base_ref }}
+          working-directory: nrf70-linux-driver
+          run: |
+            git config --global user.email "you@example.com"
+            git config --global user.name "Your Name"
+            git remote -v
+            # Ensure there's no merge commits in the PR
+            [[ "$(git rev-list --merges --count origin/${BASE_REF}..)" == "0" ]] || \
+            (echo "::error ::Merge commits not allowed, rebase instead";false)
+
+            git rebase origin/${BASE_REF}
+            # debug
+            git log  --pretty=oneline | head -n 10
+            # Clone downstream Zephyr (no west needed as we only need the scripts)
+            git clone https://github.com/nrfconnect/sdk-zephyr
+
         - name: Install and run gitlint
+          working-directory: nrf70-linux-driver
           run: |
             pip install gitlint
             gitlint --commits ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}
