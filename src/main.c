@@ -955,7 +955,7 @@ void __exit nrf_wifi_deinit_lnx(void)
 }
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Imagination Technologies");
+MODULE_AUTHOR("Nordic Semiconductor ASA");
 MODULE_DESCRIPTION("FullMAC Driver for nRF WLAN Solution");
 MODULE_VERSION(NRF_WIFI_FMAC_DRV_VER);
 
