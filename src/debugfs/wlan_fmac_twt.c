@@ -1,11 +1,9 @@
 /*
- * File Name: dbgfs_wlan_fmac_twtc
+ * Copyright (c) 2023 Nordic Semiconductor ASA
  *
- * Copyright (c) 2011-2020 Imagination Technologies Ltd.
- * All rights reserved
- *
- *
+ * SPDX-License-Identifier: GPL-2.0
  */
+
 #include <linux/debugfs.h>
 #include <linux/etherdevice.h>
 #include <linux/fs.h>
