@@ -148,6 +148,11 @@ ccflags-y += -DCONFIG_WIFI_NRF700X_LOG_LEVEL=3
 
 ccflags-y += -DCONFIG_NRF_WIFI_BEAMFORMING=1
 
+# By default dfs channell are included in scan
+# Disable DFS channels in scan
+ifeq ($(DISABLE_DFS_CHANS_SCAN), 1)
+ccflags-y += -DCONFIG_NRF700X_SCAN_DISABLE_DFS_CHANNELS
+endif
 # shipped tells the build system to not try to build this file
 ifeq ($(MODE), RADIO-TEST)
 FW_PATCH_BIN=${ROOT_INC_DIR}/fw_bins/radio_test/nrf70.bin
