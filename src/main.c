@@ -479,7 +479,7 @@ nrf_wifi_fmac_dev_init_lnx(struct nrf_wifi_ctx_lnx *rpu_ctx_lnx)
 	configure_tx_pwr_settings(&tx_pwr_ctrl_params, &tx_pwr_ceil_params);
 
 #ifndef CONFIG_NRF700X_RADIO_TEST
-	status = nrf_wifi_fmac_dev_init(rpu_ctx_lnx->rpu_ctx, NULL,
+	status = nrf_wifi_fmac_dev_init(rpu_ctx_lnx->rpu_ctx,
 #ifdef CONFIG_NRF_WIFI_LOW_POWER
 					sleep_type,
 #endif /* CONFIG_NRF_WIFI_LOW_POWER */

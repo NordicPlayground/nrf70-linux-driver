@@ -105,7 +105,7 @@ static int nrf_wifi_wlan_fmac_radio_test_conf_disp(struct seq_file *m, void *v)
 	seq_printf(m, "rx_bb_gain = %d\n", conf_params->bb_gain);
 	seq_printf(m, "tx_tone_freq = %d\n", conf_params->tx_tone_freq);
 	seq_printf(m, "xo_val = %d\n",
-		   conf_params->rf_params[NRF_WIFI_RF_PARAMS_OFF_CALIB_X0]);
+		   conf_params->rf_params[NRF_WIFI_XO_FREQ_BYTE_OFFSET]);
 	seq_printf(m, "init = %d\n", conf_params->chan.primary_num);
 	seq_printf(m, "tx = %d\n", conf_params->tx);
 	seq_printf(m, "rx = %d\n", conf_params->rx);
@@ -1017,7 +1017,7 @@ static int nrf_wifi_radio_set_xo_val(struct nrf_wifi_ctx_lnx *ctx,
 		goto error;
 	}
 
-	ctx->conf_params.rf_params[NRF_WIFI_RF_PARAMS_OFF_CALIB_X0] = val;
+	ctx->conf_params.rf_params[NRF_WIFI_XO_FREQ_BYTE_OFFSET] = val;
 
 	ctx->rf_test_run = false;
 	ctx->rf_test = NRF_WIFI_RF_TEST_MAX;
@@ -1186,32 +1186,32 @@ void nrf_wifi_radio_test_get_max_tx_power_params(void)
 	 *So,multiply 4 to MAX_TX_PWR_RADIO_TEST and
 	 *configure the RF params corresponding to Max TX power
 	 */
-	ctx->conf_params.rf_params[NRF_WIFI_RF_PARAMS_OFF_CALIB_PWR2G] =
-		(MAX_TX_PWR_RADIO_TEST << 2);
+	ctx->conf_params.rf_params[NRF_WIFI_TX_PWR_CEIL_BYTE_OFFSET +
+	NRF_WIFI_MAX_OP_PWR_DSSS_OFST] = (MAX_TX_PWR_RADIO_TEST << 2);
 
-	ctx->conf_params.rf_params[NRF_WIFI_RF_PARAMS_OFF_CALIB_PWR2GM0M7] =
-		(MAX_TX_PWR_RADIO_TEST << 2);
+	ctx->conf_params.rf_params[NRF_WIFI_TX_PWR_CEIL_BYTE_OFFSET +
+	NRF_WIFI_MAX_OP_PWR_2PT4GHZ_OFDM_MCS7] = (MAX_TX_PWR_RADIO_TEST << 2);
 
-	ctx->conf_params.rf_params[NRF_WIFI_RF_PARAMS_OFF_CALIB_PWR2GM0M7 + 1] =
-		(MAX_TX_PWR_RADIO_TEST << 2);
+	ctx->conf_params.rf_params[NRF_WIFI_TX_PWR_CEIL_BYTE_OFFSET +
+	NRF_WIFI_MAX_OP_PWR_2PT4GHZ_OFDM_MCS0] = (MAX_TX_PWR_RADIO_TEST << 2);
 
-	ctx->conf_params.rf_params[NRF_WIFI_RF_PARAMS_OFF_CALIB_PWR5GM7] =
-		(MAX_TX_PWR_RADIO_TEST << 2);
+	ctx->conf_params.rf_params[NRF_WIFI_TX_PWR_CEIL_BYTE_OFFSET +
+	NRF_WIFI_MAX_OP_PWR_5GHZ_LB_MCS7] = (MAX_TX_PWR_RADIO_TEST << 2);
 
-	ctx->conf_params.rf_params[NRF_WIFI_RF_PARAMS_OFF_CALIB_PWR5GM7 + 1] =
-		(MAX_TX_PWR_RADIO_TEST << 2);
+	ctx->conf_params.rf_params[NRF_WIFI_TX_PWR_CEIL_BYTE_OFFSET +
+	NRF_WIFI_MAX_OP_PWR_5GHZ_MID_MCS7] = (MAX_TX_PWR_RADIO_TEST << 2);
 
-	ctx->conf_params.rf_params[NRF_WIFI_RF_PARAMS_OFF_CALIB_PWR5GM7 + 2] =
-		(MAX_TX_PWR_RADIO_TEST << 2);
+	ctx->conf_params.rf_params[NRF_WIFI_TX_PWR_CEIL_BYTE_OFFSET +
+	NRF_WIFI_MAX_OP_PWR_5GHZ_HI_MCS7] = (MAX_TX_PWR_RADIO_TEST << 2);
 
-	ctx->conf_params.rf_params[NRF_WIFI_RF_PARAMS_OFF_CALIB_PWR5GM0] =
-		(MAX_TX_PWR_RADIO_TEST << 2);
+	ctx->conf_params.rf_params[NRF_WIFI_TX_PWR_CEIL_BYTE_OFFSET +
+	NRF_WIFI_MAX_OP_PWR_5GHZ_LB_MCS0] = (MAX_TX_PWR_RADIO_TEST << 2);
 
-	ctx->conf_params.rf_params[NRF_WIFI_RF_PARAMS_OFF_CALIB_PWR5GM0 + 1] =
-		(MAX_TX_PWR_RADIO_TEST << 2);
+	ctx->conf_params.rf_params[NRF_WIFI_TX_PWR_CEIL_BYTE_OFFSET +
+	NRF_WIFI_MAX_OP_PWR_5GHZ_MID_MCS0] = (MAX_TX_PWR_RADIO_TEST << 2);
 
-	ctx->conf_params.rf_params[NRF_WIFI_RF_PARAMS_OFF_CALIB_PWR5GM0 + 2] =
-		(MAX_TX_PWR_RADIO_TEST << 2);
+	ctx->conf_params.rf_params[NRF_WIFI_TX_PWR_CEIL_BYTE_OFFSET +
+	NRF_WIFI_MAX_OP_PWR_5GHZ_HI_MCS0] = (MAX_TX_PWR_RADIO_TEST << 2);
 }
 
 static int nrf_wifi_radio_test_set_tx(struct nrf_wifi_ctx_lnx *ctx,
