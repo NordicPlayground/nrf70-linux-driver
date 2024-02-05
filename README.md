@@ -200,7 +200,7 @@ RADIO-TEST mode is used to characterize TX/RX functionalities of RPU with differ
 
 1. To build the driver with RADIO-TEST mode
    ```bash
-    make clean all MODE=RADIO_TEST LOW_POWER=1
+    make clean all MODE=RADIO-TEST LOW_POWER=1
     ```
    Ensure that the `rf_wifi_fmac_radio_test.ko` and `dts/nrf70_rpi_interposer.dtbo` files are generated.
 2. Load the driver
