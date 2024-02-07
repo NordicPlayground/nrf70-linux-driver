@@ -7,13 +7,18 @@ jobs:
       name: git lint
       runs-on: ubuntu-22.04
       steps:
-        - name: 'Calculate PR commits + 1'
-          run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> $GITHUB_ENV
         - uses: actions/checkout@v3
           with:
             ref: ${{ github.event.pull_request.head.sha }}
-            fetch-depth: ${{ env.PR_FETCH_DEPTH }}
+            path: nrf70-linux-driver
+            fetch-depth: 0
+        - name: cache-pip
+          uses: actions/cache@v3
+          with:
+            path: ~/.cache/pip
+            key: ${{ runner.os }}-doc-pip
         - name: Info
+          working-directory: nrf70-linux-driver
           run: |
             echo "Repository: $GITHUB_REPOSITORY"
             echo "Workspace: $GITHUB_WORKSPACE"
@@ -27,7 +32,6 @@ jobs:
             pip3 install -U setuptools
             pip3 install -U wheel
             grep -E "python-magic|junitparser|lxml|gitlint|pylint|pykwalify|yamllint" scripts/requirements-fixed.txt | xargs pip3 install -U
-
         - name: Clone Zephyr downstream
           env:
             BASE_REF: ${{ github.base_ref }}
@@ -36,6 +40,7 @@ jobs:
             git config --global user.email "you@example.com"
             git config --global user.name "Your Name"
             git remote -v
+            git log -1 origin/main
             # Ensure there's no merge commits in the PR
             [[ "$(git rev-list --merges --count origin/${BASE_REF}..)" == "0" ]] || \
             (echo "::error ::Merge commits not allowed, rebase instead";false)
@@ -51,3 +56,12 @@ jobs:
           run: |
             pip install gitlint
             gitlint --commits ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}
+
+        - name: Run CODEOWNERS test
+          id: codeowners
+          working-directory: nrf70-linux-driver
+          env:
+            BASE_REF: ${{ github.base_ref }}
+          if: contains(github.event.pull_request.user.login, 'dependabot[bot]') != true
+          run: |
+            ./scripts/ci/codeowners.py -c origin/${BASE_REF}..
