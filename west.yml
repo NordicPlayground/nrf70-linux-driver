@@ -11,4 +11,4 @@ manifest:
     - name: nrfxlib
       remote: ncs
       repo-path: sdk-nrfxlib
-      revision: 6c2f4ec7b8916e89cbce66cd0ad82df7642d6f78
+      revision: pull/1201/head
