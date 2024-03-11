@@ -336,6 +336,40 @@ static unsigned char shim_nbuf_get_priority(void *nbuf)
 	return skb->priority;
 }
 
+static unsigned char shim_nbuf_get_chksum_done(void *nbuf)
+{
+	struct sk_buff *skb = (struct sk_buff *)nbuf;
+	__wsum csum;
+	__sum16 sum;
+
+	if (!skb) {
+		pr_err("%s: Unable to get checksum\n", __func__);
+		return -1;
+	}
+
+	csum = skb_checksum(skb, 0, skb->len, 0);
+	sum = csum_fold(csum_add(skb->csum, csum));
+
+	skb->ip_summed = CHECKSUM_COMPLETE;
+	skb->csum_complete_sw = 1;
+	skb->csum_valid = !sum;
+	skb->csum = csum;
+
+	return skb->csum_complete_sw;
+}
+
+static void shim_nbuf_set_chksum_done(void *nbuf, unsigned char chksum_done)
+{
+	struct sk_buff *skb = (struct sk_buff *)nbuf;
+
+	if (!skb) {
+		pr_err("%s: Unable to set checksum\n", __func__);
+		return;
+	}
+
+	skb->csum_complete_sw = (bool)chksum_done;
+}
+
 static void *shim_llist_node_alloc(void)
 {
 	struct shim_llist_node *llist_node = NULL;
@@ -1080,6 +1114,8 @@ const struct nrf_wifi_osal_ops nrf_wifi_os_ops = {
 	.nbuf_data_push = shim_nbuf_data_push,
 	.nbuf_data_pull = shim_nbuf_data_pull,
 	.nbuf_get_priority = shim_nbuf_get_priority,
+	.nbuf_get_chksum_done = shim_nbuf_get_chksum_done,
+	.nbuf_set_chksum_done = shim_nbuf_set_chksum_done,
 
 	.tasklet_alloc = shim_tasklet_alloc,
 	.tasklet_free = shim_tasklet_free,
