@@ -135,6 +135,7 @@ ccflags-y += \
 ifneq ($(MODE), RADIO-TEST)
 ccflags-y += -DCONFIG_NRF700X_DATA_TX
 ccflags-y += -DCONFIG_NRF700X_STA_MODE
+ccflags-y += -DCONFIG_NRF700X_TCP_IP_CHECKSUM_OFFLOAD
 endif
 
 OBJS += $(OSAL_DIR)/hw_if/hal/src/hpqm.o
