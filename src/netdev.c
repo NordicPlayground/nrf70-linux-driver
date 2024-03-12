@@ -141,7 +141,7 @@ int nrf_wifi_netdev_open(struct net_device *netdev)
 
 	vif_info->state = 1;
 
-	memcpy(vif_info->ifacename, "wlan0", strlen("wlan0"));
+	vif_info->if_index = vif_ctx_lnx->if_idx;
 
 	status = nrf_wifi_fmac_chg_vif_state(rpu_ctx_lnx->rpu_ctx,
 					     vif_ctx_lnx->if_idx, vif_info);
@@ -177,7 +177,7 @@ int nrf_wifi_netdev_close(struct net_device *netdev)
 
 	vif_info->state = 0;
 
-	memcpy(vif_info->ifacename, "wlan0", strlen("wlan0"));
+	vif_info->if_index = vif_ctx_lnx->if_idx;
 
 	status = nrf_wifi_fmac_chg_vif_state(rpu_ctx_lnx->rpu_ctx,
 					     vif_ctx_lnx->if_idx, vif_info);
