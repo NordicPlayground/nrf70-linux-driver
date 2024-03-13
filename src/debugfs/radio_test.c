@@ -167,7 +167,6 @@ nrf_wifi_radio_test_conf_init(struct rpu_conf_params *conf_params)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	unsigned char country_code[NRF_WIFI_COUNTRY_CODE_LEN] = { 0 };
-	struct nrf_wifi_tx_pwr_ceil_params tx_pwr_ceil_params;
 
 	/* Check and save regulatory country code currently set */
 	if (strlen(conf_params->country_code)) {
@@ -182,8 +181,7 @@ nrf_wifi_radio_test_conf_init(struct rpu_conf_params *conf_params)
 
 	status = nrf_wifi_fmac_rf_params_get(
 		ctx->rpu_ctx,
-		(struct nrf_wifi_phy_rf_params *)conf_params->rf_params,
-		&tx_pwr_ceil_params);
+		(struct nrf_wifi_phy_rf_params *)conf_params->rf_params);
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		goto out;
 	}
