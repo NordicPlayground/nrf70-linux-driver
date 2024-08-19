@@ -2,9 +2,15 @@
 KROOT ?= /lib/modules/`uname -r`/build
 MODE?= STA
 LOW_POWER?= 0
-DTS = dts/nrf70_rpi_interposer.dts
+MACHINE := $(shell uname -m)
+RPI_DTS = dts/nrf70_rpi_interposer.dts
 
 # Private portion
+# Check if the machine is a Raspberry Pi, doesn't cover cross-compilation and other cases
+IS_RPI := $(shell [ "$(MACHINE)" = "armv7l" ] && \
+				   grep -q "Raspberry Pi" /proc/device-tree/model && \
+				   echo 1 || echo 0)
+
 DRV_FUNC_NAME =  _wifi_fmac
 
 # If mode != STA throw error
@@ -181,10 +187,11 @@ obj-m += $(NAME).o
 
 $(NAME)-objs= $(OBJS)
 
-all: dt gen_patch_bin
+all: $(if $(filter-out 0,$(IS_RPI)),dt) gen_patch_bin
 	@make -C $(KROOT) M=$(PWD) modules
+
 dt:
-	dtc -@ -I dts -O dtb -o $(basename $(DTS)).dtbo $(DTS)
+	dtc -@ -I dts -O dtb -o $(basename $(RPI_DTS)).dtbo $(RPI_DTS)
 
 gen_patch_bin:
 	cd $(shell dirname ${FW_PATCH_BIN}); \
