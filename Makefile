@@ -187,8 +187,12 @@ obj-m += $(NAME).o
 
 $(NAME)-objs= $(OBJS)
 
+# Cross-compiler variables
+CROSS_COMPILE ?=
+ARCH ?= $(shell uname -m)
+
 all: $(if $(filter-out 0,$(IS_RPI)),dt) gen_patch_bin
-	@make -C $(KROOT) M=$(PWD) modules
+	@make -C $(KROOT) M=$(PWD) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) modules
 
 dt:
 	dtc -@ -I dts -O dtb -o $(basename $(RPI_DTS)).dtbo $(RPI_DTS)
