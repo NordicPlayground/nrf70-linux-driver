@@ -12,20 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     name: Manifest
     steps:
-      - name: Checkout the code
-        uses: actions/checkout@v4
-        with:
-          path: nrf_linux
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
-          persist-credentials: false
-
+      # action-manifest loads west.yml via the GitHub API (PR/base blobs). Do not
+      # checkout pull_request.head.sha in pull_request_target — that runs untrusted
+      # code in a job that can use the workflow token (pwn-request risk).
       - name: Manifest
         uses: zephyrproject-rtos/action-manifest@16c4cfa380ae2b6fa3daddb1a35032e69422a20f
         with:
-          github-token: ${{ secrets.TKC_GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           manifest-path: 'west.yml'
-          checkout-path: 'nrf_linux'
           label-prefix: 'manifest-'
           verbosity-level: '1'
 
@@ -37,4 +31,3 @@ jobs:
             manifest
             manifest-nrfxlib:nrfxlib
           dnm-labels: 'DNM'
-
