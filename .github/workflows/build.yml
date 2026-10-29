@@ -7,29 +7,35 @@ on:
 jobs:
   build:
 
-    # Latest kernel versions won't work for nRF70 driver (this has 5.15)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    # Latest kernel versions won't work for nRF70 driver, build against
+    # pinned jammy 5.15 headers instead of the runner's own kernel. Newer
+    # 5.15 updates (seen on -198) backport array_size.h and break the build.
+    container: ubuntu:22.04
+    env:
+      KVER: 5.15.0-130-generic
 
     steps:
-      - name: Update PATH for west
+      - name: Install dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential ca-certificates device-tree-compiler git \
+            linux-headers-${KVER} python3-pip
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
       - name: cache-pip
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-doc-pip
-
-      - name: Install dependencies
-        run: |
-          sudo apt install device-tree-compiler
 
       - name: Install python dependencies
         run: |
@@ -44,6 +50,7 @@ jobs:
         run: |
           git config --global user.email "you@example.com"
           git config --global user.name "Your Name"
+          git config --global --add safe.directory '*'
           git remote -v
           west init -l . || true
           west update 2>&1 1> west.update.log || west update 2>&1 1> west.update2.log
@@ -52,10 +59,10 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
-          sudo apt install linux-headers-$(uname -r)
-          make clean all 2>&1 1> make.log
-          make clean all LOW_POWER=1 2>&1 1> make_lpm.log
-          make clean all MODE=RADIO-TEST 2>&1 1> make_rt.log
+          KROOT=/usr/src/linux-headers-${KVER}
+          make clean all KROOT=${KROOT} 2>&1 1> make.log
+          make clean all KROOT=${KROOT} LOW_POWER=1 2>&1 1> make_lpm.log
+          make clean all KROOT=${KROOT} MODE=RADIO-TEST 2>&1 1> make_rt.log
 
       - name: upload-results
         uses: actions/upload-artifact@v4
