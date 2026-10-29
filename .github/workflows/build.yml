@@ -58,7 +58,7 @@ jobs:
           make clean all MODE=RADIO-TEST 2>&1 1> make_rt.log
 
       - name: upload-results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         # Always collect artifacts, even if the build failed
         if: always()
         continue-on-error: true
